@@ -170,14 +170,20 @@ Dann `INDUSTRY=<neue-branche>` setzen. Das Content-Schema (`pipeline/schema.py`)
 - Fehlende Daten bleiben `null`/leer → Sektion wird nicht gerendert (z. B. keine Preise bei „Rote Ampel“ in der Demo).
 - Bilder nur von der eigenen Domain des Betriebs (vermessen, ≥ 900 px) oder aus dem lizenzierten Set. Nie aus Google Maps.
 
-## 5. Tests
+## 5. Qualität der Previews
+
+Lighthouse (mobil, Demo-Preview, lokal gemessen): **Performance 100, Barrierefreiheit 95–100, Best Practices 96–100**.
+SEO zeigt bei Previews absichtlich 66 („blocked from indexing“ durch noindex); bei per `promote` erzeugten
+Kundenseiten entfällt noindex. Kein JavaScript, selbst gehostete Schrift, keine externen Requests.
+
+## 6. Tests
 
 ```bash
 python -m pytest -q        # 30 Tests: Extraktion, Scoring, Schema, Validator, Sperrliste, Versandregeln, End-to-End-Demo
 ```
 Der E2E-Test baut die Astro-Site und macht Screenshots, wenn Node und Playwright vorhanden sind (sonst wird dieser Teil übersprungen).
 
-## 6. Markenname und Domain – 5 Vorschläge
+## 7. Markenname und Domain – 5 Vorschläge
 
 | Name | Domain-Ideen | Warum |
 |---|---|---|
@@ -189,6 +195,6 @@ Der E2E-Test baut die Astro-Site und macht Screenshots, wenn Node und Playwright
 
 Verfügbarkeit offline nicht geprüft. Empfehlung: Hauptdomain `.de`, Versanddomains als Varianten (`-web.de`, `.digital`).
 
-## 7. Was August noch tun muss
+## 8. Was August noch tun muss
 
 Priorisierte Go-live-Checkliste: **[docs/GO-LIVE.md](docs/GO-LIVE.md)**. Entscheidungen mit Begründung: **[docs/DECISIONS.md](docs/DECISIONS.md)**.
