@@ -1,0 +1,31 @@
+# Branchenpaket "Fahrschulen". Neue Branche = neuer Ordner mit derselben Struktur.
+label: Fahrschule
+search_terms:
+  - "Fahrschule in {city}"
+  - "Fahrschule {city}"
+service_label: Führerscheinklassen
+service_singular: Klasse
+
+# Which pages of the old website are worth crawling, by link text / URL keyword.
+page_keywords:
+  start: ["start", "home", "willkommen"]
+  services: ["klasse", "klassen", "führerschein", "fuehrerschein", "ausbildung", "angebot", "leistungen"]
+  prices: ["preis", "preise", "kosten", "gebühr", "gebuehr", "tarif"]
+  team: ["team", "fahrlehrer", "über uns", "ueber-uns", "ueber uns", "wir", "unternehmen"]
+  hours: ["theorie", "unterricht", "zeiten", "öffnungszeiten", "oeffnungszeiten", "bürozeiten", "buerozeiten", "termine"]
+  contact: ["kontakt", "anfahrt", "anmeldung", "anmelden"]
+  imprint: ["impressum", "imprint", "datenschutz", "privacy", "kontakt"]
+
+# Site sections the template renders (order = order on the page). Missing data hides a section.
+sections: [hero, highlights, services, prices, hours, team, about, contact]
+
+scoring:
+  # Score points for industry-specific checks (added to the generic score, capped at 100).
+  missing_services_page: 8     # no page/section listing licence classes
+  missing_prices: 0            # many driving schools hide prices on purpose - no penalty
+
+prompt_hints: |
+  Typische Führerscheinklassen: AM, A1, A2, A, B, B196, B197, BE, L, T, C1, C, CE, D.
+  Übliche Begriffe: Theorieunterricht, Fahrstunden, Intensivkurs/Ferienkurs, Sonderfahrten,
+  Erste-Hilfe-Kurs, Sehtest, Anmeldung, Automatik/Schaltung, Begleitetes Fahren ab 17 (BF17).
+  Zielgruppe der Website: Fahrschüler (oft 16–25) und deren Eltern. Ton: freundlich, klar, vertrauensvoll.

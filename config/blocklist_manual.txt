@@ -1,0 +1,2 @@
+# Manuell gepflegte globale Sperrliste (E-Mail-Adressen ODER Domains, eine pro Zeile).
+# Wird bei jedem Lauf in die Datenbank-Sperrliste übernommen. # = Kommentar.

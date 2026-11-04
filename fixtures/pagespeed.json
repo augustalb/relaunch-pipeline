@@ -1,0 +1,66 @@
+{
+  "fahrschule-mueller": {
+    "performance": 0.41,
+    "lcp_ms": 8900,
+    "cls": 0.31,
+    "accessibility": 0.62,
+    "best_practices": 0.5,
+    "seo": 0.7
+  },
+  "fahrschule-drive-in": {
+    "performance": 0.55,
+    "lcp_ms": 5200,
+    "cls": 0.05,
+    "accessibility": 0.58,
+    "best_practices": 0.6,
+    "seo": 0.6
+  },
+  "fahrschule-rote-ampel": {
+    "performance": 0.38,
+    "lcp_ms": 9800,
+    "cls": 0.12,
+    "accessibility": 0.8,
+    "best_practices": 0.7,
+    "seo": 0.85
+  },
+  "fahrschule-fahrspass-essen": {
+    "performance": 0.63,
+    "lcp_ms": 4300,
+    "cls": 0.02,
+    "accessibility": 0.7,
+    "best_practices": 0.65,
+    "seo": 0.75
+  },
+  "fahrschule-kurvenkoenig": {
+    "performance": 0.7,
+    "lcp_ms": 3100,
+    "cls": 0.0,
+    "accessibility": 0.4,
+    "best_practices": 0.5,
+    "seo": 0.45
+  },
+  "fahrschule-wuppertaler-schwebe": {
+    "performance": 0.35,
+    "lcp_ms": 7600,
+    "cls": 0.4,
+    "accessibility": 0.75,
+    "best_practices": 0.8,
+    "seo": 0.5
+  },
+  "fahrschule-bonn-mobil": {
+    "performance": 0.47,
+    "lcp_ms": 6100,
+    "cls": 0.18,
+    "accessibility": 0.72,
+    "best_practices": 0.6,
+    "seo": 0.8
+  },
+  "fahrschule-muenster-modern": {
+    "performance": 0.96,
+    "lcp_ms": 1400,
+    "cls": 0.01,
+    "accessibility": 0.97,
+    "best_practices": 1.0,
+    "seo": 1.0
+  }
+}

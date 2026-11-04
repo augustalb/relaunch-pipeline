@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+data/*.db
+data/*.db-journal
+outbox/*.eml
+site/node_modules/
+site/dist/
+site/public/industry-images/
+site/src/data/previews/*.json
+site/.astro/
+screenshots/
+customers/*/dist/
+.pytest_cache/
+customers/.build-backup/
+*.egg-info/

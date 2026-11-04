@@ -1,0 +1,17 @@
+---
+import Base from '../layouts/Base.astro';
+import { allPreviews, templateFor, PROMOTE_SLUG } from '../lib/load';
+import type { PreviewFile } from '../lib/types';
+
+export function getStaticPaths() {
+  if (PROMOTE_SLUG) return [];
+  return allPreviews().map((p) => ({ params: { slug: p.meta.slug }, props: { preview: p } }));
+}
+
+const { preview } = Astro.props as { preview: PreviewFile };
+const Template = templateFor(preview.content.industry);
+const title = `${preview.content.company_name.value}${preview.content.city ? ' – ' + preview.content.city : ''}`;
+---
+<Base title={title} description={preview.content.hero_text} meta={preview.meta}>
+  <Template content={preview.content} meta={preview.meta} />
+</Base>

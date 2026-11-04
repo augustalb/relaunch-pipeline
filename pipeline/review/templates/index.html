@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review – Relaunch-Pipeline</title>
+<style>
+  :root { --bg:#f6f7f9; --card:#fff; --ink:#15202b; --muted:#5b6673; --brand:#0f4c81; --warn:#b45309; --ok:#15803d; --bad:#b91c1c; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif; color:var(--ink); background:var(--bg); }
+  header { background:#fff; border-bottom:1px solid #e5e7eb; padding:12px 24px; display:flex; gap:16px; align-items:center; flex-wrap:wrap; position:sticky; top:0; z-index:5; }
+  header h1 { font-size:18px; margin:0 16px 0 0; }
+  header a { color:var(--muted); text-decoration:none; padding:4px 10px; border-radius:999px; }
+  header a.active { background:var(--brand); color:#fff; }
+  main { max-width:1200px; margin:0 auto; padding:24px; }
+  .msg { background:#ecfdf5; border:1px solid #a7f3d0; color:#065f46; padding:10px 14px; border-radius:10px; margin-bottom:16px; }
+  .card { background:var(--card); border:1px solid #e5e7eb; border-radius:16px; padding:20px; margin-bottom:24px; display:grid; grid-template-columns: 1fr 1fr; gap:20px; }
+  .card h2 { margin:0 0 4px; font-size:20px; }
+  .meta { color:var(--muted); font-size:13px; }
+  .shots { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .shots figure { margin:0; } .shots figcaption { font-size:12px; color:var(--muted); margin-bottom:4px; font-weight:600; }
+  .shots img { width:100%; border-radius:12px; border:1px solid #e5e7eb; background:#fff; }
+  .shots .none { height:260px; display:grid; place-items:center; border:1px dashed #cbd5e1; border-radius:12px; color:var(--muted); font-size:13px; }
+  ul { margin:6px 0; padding-left:18px; }
+  .warn li { color:var(--warn); } .ok { color:var(--ok); font-weight:600; }
+  textarea, input[type=text] { width:100%; font:14px/1.5 ui-monospace,Menlo,Consolas,monospace; border:1px solid #d1d5db; border-radius:10px; padding:10px; }
+  textarea { min-height:260px; }
+  .actions { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  button { border:0; border-radius:999px; padding:10px 16px; font-weight:700; cursor:pointer; }
+  .approve { background:var(--ok); color:#fff; } .reject { background:#fee2e2; color:var(--bad); } .save { background:#e5e7eb; }
+  .pill { display:inline-block; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:700; background:#eef2ff; color:#3730a3; margin-right:6px; }
+  .bulk { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  details summary { cursor:pointer; color:var(--muted); font-size:13px; }
+  pre { white-space:pre-wrap; font-size:13px; background:#f8fafc; padding:10px; border-radius:10px; }
+  @media (max-width:900px) { .card { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Review</h1>
+  {% for st in ['pending_review','approved','queued','sent','replied','rejected','no_contact','disqualified'] %}
+    <a href="/?status={{ st }}" class="{{ 'active' if st == status else '' }}">{{ st }} ({{ counts.get(st, 0) }})</a>
+  {% endfor %}
+  <span class="meta" style="margin-left:auto">AUTO_APPROVE={{ auto_approve }}</span>
+</header>
+<main>
+  {% if msg %}<div class="msg">{{ msg }}</div>{% endif %}
+  {% if status == 'pending_review' and leads %}
+  <div class="bulk">
+    <div class="meta">{{ leads|length }} Leads warten auf Freigabe.</div>
+    <form method="post" action="/approve-all"><input type="hidden" name="only_clean" value="true"><button class="approve">Alle ohne Warnungen freigeben</button></form>
+  </div>
+  {% endif %}
+  {% if not leads %}<p class="meta">Keine Leads im Status „{{ status }}“.</p>{% endif %}
+  {% for l in leads %}
+  <section class="card" id="lead-{{ l.id }}">
+    <div>
+      <h2>#{{ l.id }} {{ l.name }}</h2>
+      <div class="meta">{{ l.city }} · <a href="{{ l.website }}" target="_blank" rel="noopener">{{ l.website }}</a> · Score {{ l.score }} · {{ l.email }} <span class="pill">{{ l.email_verification }}</span></div>
+      <div class="meta">Anrede: {{ l.salutation }}{% if l.owner %} ({{ l.owner }}){% endif %}</div>
+      <p><strong>Preview:</strong>
+        {% if l.preview_url %}<a href="{{ l.preview_url }}" target="_blank" rel="noopener">{{ l.preview_url }}</a>{% endif %}
+        {% if local_preview and l.preview_path %} · <a href="/preview/{{ l.preview_path }}/" target="_blank">lokal öffnen</a>{% endif %}
+      </p>
+      <div class="shots">
+        <figure><figcaption>Vorher (alt, mobil)</figcaption>{% if l.before %}<img src="/shot/{{ l.id }}/before" alt="alt" loading="lazy">{% else %}<div class="none">kein Screenshot</div>{% endif %}</figure>
+        <figure><figcaption>Nachher (Entwurf, mobil)</figcaption>{% if l.after %}<img src="/shot/{{ l.id }}/after" alt="neu" loading="lazy">{% else %}<div class="none">kein Screenshot</div>{% endif %}</figure>
+      </div>
+      <h3 style="margin-bottom:0">Befunde</h3>
+      <ul>{% for f in l.findings %}<li>{{ f }}</li>{% endfor %}</ul>
+      <h3 style="margin-bottom:0">Validator</h3>
+      {% if l.warnings %}<ul class="warn">{% for w in l.warnings %}<li>{{ w }}</li>{% endfor %}</ul>{% else %}<p class="ok">Keine Warnungen – alle Fakten in den Quelldaten belegt.</p>{% endif %}
+    </div>
+    <div>
+      <form method="post" action="/approve/{{ l.id }}">
+        <label class="meta">Betreff</label>
+        <input type="text" name="subject" value="{{ l.subject }}">
+        <label class="meta">E-Mail (Text, editierbar)</label>
+        <textarea name="body">{{ l.body }}</textarea>
+        {% if l.email_warnings %}<ul class="warn">{% for w in l.email_warnings %}<li>{{ w }}</li>{% endfor %}</ul>{% endif %}
+        <div class="actions">
+          <button class="approve" type="submit">Freigeben</button>
+          <button class="save" type="submit" formaction="/save/{{ l.id }}">Nur speichern</button>
+          <button class="reject" type="submit" formaction="/reject/{{ l.id }}" formnovalidate>Ablehnen</button>
+        </div>
+      </form>
+      <details style="margin-top:12px"><summary>Follow-ups anzeigen</summary><pre>{{ l.followup_1 }}</pre><pre>{{ l.followup_2 }}</pre></details>
+    </div>
+  </section>
+  {% endfor %}
+</main>
+</body>
+</html>

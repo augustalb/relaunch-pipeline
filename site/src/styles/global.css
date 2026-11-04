@@ -1,0 +1,41 @@
+@import "tailwindcss";
+@import "@fontsource-variable/manrope";
+/* Industry templates live outside the site folder, so Tailwind must be told to scan them. */
+@source "../../../industries";
+
+@theme inline {
+  --font-sans: "Manrope Variable", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-soft: var(--brand-soft);
+  --color-accent: var(--accent);
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+}
+
+:root {
+  --brand: #0f4c81;
+  --brand-dark: #0a3357;
+  --brand-soft: #e6eef7;
+  --accent: #f4b400;
+  --ink: #15202b;
+  --paper: #ffffff;
+}
+
+html { scroll-behavior: smooth; }
+body { font-family: var(--font-sans); color: var(--ink); background: var(--paper); -webkit-font-smoothing: antialiased; }
+
+@utility container-x { @apply mx-auto w-full max-w-6xl px-5 sm:px-8; }
+@utility section { @apply py-16 sm:py-24; }
+@utility eyebrow { @apply text-xs font-bold uppercase tracking-[0.18em] text-brand; }
+@utility h2 { @apply mt-3 text-3xl font-extrabold tracking-tight text-ink sm:text-4xl; }
+@utility lead { @apply mt-4 max-w-2xl text-lg text-slate-600; }
+@utility btn { @apply inline-flex items-center justify-center gap-2 rounded-full px-6 py-3.5 text-base font-bold transition focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand/30; }
+@utility btn-primary { @apply btn bg-brand text-white shadow-lg shadow-brand/25 hover:bg-brand-dark; }
+@utility btn-ghost { @apply btn border-2 border-white/70 text-white backdrop-blur hover:bg-white/10; }
+@utility btn-light { @apply btn bg-white text-brand ring-1 ring-slate-200 hover:bg-brand-soft; }
+@utility card { @apply rounded-2xl bg-white p-6 shadow-sm ring-1 ring-slate-200/80; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}

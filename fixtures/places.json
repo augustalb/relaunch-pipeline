@@ -1,0 +1,145 @@
+[
+  {
+    "place_id": "ChIJfixture00ueller",
+    "name": "Fahrschule Müller",
+    "city": "Köln",
+    "address": "Venloer Straße 212, 50823 Köln, Deutschland",
+    "phone": "0221 5509876",
+    "website": "/fahrschule-mueller/",
+    "rating": 4.3,
+    "rating_count": 20,
+    "business_status": "OPERATIONAL"
+  },
+  {
+    "place_id": "ChIJfixture01ive-in",
+    "name": "Fahrschule Drive-In Schmidt",
+    "city": "Düsseldorf",
+    "address": "Bilker Allee 88, 40217 Düsseldorf, Deutschland",
+    "phone": "0211 3344556",
+    "website": "/fahrschule-drive-in/",
+    "rating": 4.3999999999999995,
+    "rating_count": 37,
+    "business_status": "OPERATIONAL"
+  },
+  {
+    "place_id": "ChIJfixture02-ampel",
+    "name": "Fahrschule Rote Ampel",
+    "city": "Dortmund",
+    "address": "Brückstraße 14, 44135 Dortmund, Deutschland",
+    "phone": "0231 9876543",
+    "website": "/fahrschule-rote-ampel/",
+    "rating": 4.5,
+    "rating_count": 54,
+    "business_status": "OPERATIONAL"
+  },
+  {
+    "place_id": "ChIJfixture03-essen",
+    "name": "Fahrschule FahrSpaß Essen",
+    "city": "Essen",
+    "address": "Rüttenscheider Str. 101, 45130 Essen, Deutschland",
+    "phone": "0201 7788990",
+    "website": "/fahrschule-fahrspass-essen/",
+    "rating": 4.6,
+    "rating_count": 71,
+    "business_status": "OPERATIONAL"
+  },
+  {
+    "place_id": "ChIJfixture04koenig",
+    "name": "Fahrschule Kurvenkönig",
+    "city": "Bochum",
+    "address": "Castroper Straße 45, 44791 Bochum, Deutschland",
+    "phone": "0234 123456",
+    "website": "/fahrschule-kurvenkoenig/",
+    "rating": 4.7,
+    "rating_count": 88,
+    "business_status": "OPERATIONAL"
+  },
+  {
+    "place_id": "ChIJfixture05chwebe",
+    "name": "Fahrschule Schwebe",
+    "city": "Wuppertal",
+    "address": "Friedrich-Ebert-Straße 160, 42117 Wuppertal, Deutschland",
+    "phone": "0202 445566",
+    "website": "/fahrschule-wuppertaler-schwebe/",
+    "rating": 4.3,
+    "rating_count": 105,
+    "business_status": "OPERATIONAL"
+  },
+  {
+    "place_id": "ChIJfixture06-mobil",
+    "name": "Fahrschule Bonn Mobil",
+    "city": "Bonn",
+    "address": "Kölnstraße 230, 53117 Bonn, Deutschland",
+    "phone": "0228 665544",
+    "website": "/fahrschule-bonn-mobil/",
+    "rating": 4.3999999999999995,
+    "rating_count": 122,
+    "business_status": "OPERATIONAL"
+  },
+  {
+    "place_id": "ChIJfixture07modern",
+    "name": "Fahrschule Westfalen",
+    "city": "Münster",
+    "address": "Hammer Straße 300, 48153 Münster, Deutschland",
+    "phone": "0251 9988776",
+    "website": "/fahrschule-muenster-modern/",
+    "rating": 4.5,
+    "rating_count": 139,
+    "business_status": "OPERATIONAL"
+  },
+  {
+    "place_id": "ChIJfixture90nosite",
+    "name": "Fahrschule Ohne Netz",
+    "city": "Köln",
+    "address": "Irgendwo 1, 50667 Köln",
+    "phone": "0221 1",
+    "website": null,
+    "rating": 4.0,
+    "rating_count": 3,
+    "business_status": "OPERATIONAL"
+  },
+  {
+    "place_id": "ChIJfixture91facebook",
+    "name": "Fahrschule Nur Facebook",
+    "city": "Köln",
+    "address": "Irgendwo 2, 50667 Köln",
+    "phone": "0221 2",
+    "website": "https://www.facebook.com/fahrschulenurfb",
+    "rating": 4.9,
+    "rating_count": 12,
+    "business_status": "OPERATIONAL"
+  },
+  {
+    "place_id": "ChIJfixture92closed",
+    "name": "Fahrschule Geschlossen",
+    "city": "Düsseldorf",
+    "address": "Weg 3, 40210 Düsseldorf",
+    "phone": "0211 3",
+    "website": "https://www.fahrschule-zu.de",
+    "rating": 3.1,
+    "rating_count": 8,
+    "business_status": "CLOSED_PERMANENTLY"
+  },
+  {
+    "place_id": "ChIJfixture93chain",
+    "name": "123fahrschule Köln",
+    "city": "Köln",
+    "address": "Ring 4, 50668 Köln",
+    "phone": "0221 4",
+    "website": "https://www.123fahrschule.de/koeln",
+    "rating": 4.5,
+    "rating_count": 300,
+    "business_status": "OPERATIONAL"
+  },
+  {
+    "place_id": "ChIJfixture94dupdomain",
+    "name": "Fahrschule Müller Filiale Nippes",
+    "city": "Köln",
+    "address": "Neusser Str. 5, 50733 Köln",
+    "phone": "0221 5509876",
+    "website": "/fahrschule-mueller/",
+    "rating": 4.4,
+    "rating_count": 9,
+    "business_status": "OPERATIONAL"
+  }
+]

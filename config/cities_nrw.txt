@@ -1,0 +1,32 @@
+# Startregion Nordrhein-Westfalen: die ~30 größten Städte (eine pro Zeile, # = Kommentar).
+# Reihenfolge = Reihenfolge der Discovery. Beliebig änderbar/erweiterbar.
+Köln
+Düsseldorf
+Dortmund
+Essen
+Duisburg
+Bochum
+Wuppertal
+Bielefeld
+Bonn
+Münster
+Mönchengladbach
+Gelsenkirchen
+Aachen
+Krefeld
+Oberhausen
+Hagen
+Hamm
+Mülheim an der Ruhr
+Leverkusen
+Solingen
+Herne
+Neuss
+Paderborn
+Bottrop
+Recklinghausen
+Bergisch Gladbach
+Remscheid
+Moers
+Siegen
+Gütersloh

@@ -1,0 +1,17 @@
+{
+  "name": "relaunch-previews",
+  "type": "module",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "@fontsource-variable/manrope": "^5.3.0",
+    "@tailwindcss/vite": "^4.1.11",
+    "astro": "^5.12.0",
+    "tailwindcss": "^4.1.11"
+  }
+}

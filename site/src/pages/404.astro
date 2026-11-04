@@ -1,0 +1,10 @@
+---
+import Base from '../layouts/Base.astro';
+const emptyMeta = { slug: '404', company: 'Vorschau', sender_name: '', brand_name: '', reply_to: '', created_at: '', mode: 'preview' as const };
+---
+<Base title="Nicht gefunden" meta={emptyMeta}>
+  <main class="container-x section text-center">
+    <h1 class="text-2xl font-extrabold">Diesen Entwurf gibt es nicht (mehr).</h1>
+    <p class="mt-3 text-slate-600">Entwürfe werden nach einigen Wochen automatisch entfernt.</p>
+  </main>
+</Base>

@@ -1,0 +1,35 @@
+---
+import '../styles/global.css';
+import { paletteFor, paletteStyle } from '../lib/palette';
+import type { PreviewMeta } from '../lib/types';
+
+interface Props { title: string; description?: string; meta: PreviewMeta }
+const { title, description = '', meta } = Astro.props;
+const palette = paletteFor(meta.slug, meta.palette);
+const isPreview = meta.mode === 'preview';
+---
+<!doctype html>
+<html lang="de" style={paletteStyle(palette)}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    {description && <meta name="description" content={description} />}
+    {isPreview && <meta name="robots" content="noindex, nofollow, noarchive" />}
+    <meta name="theme-color" content={palette.brand} />
+    <link rel="icon" href={`data:image/svg+xml,${encodeURIComponent(`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='14' fill='${palette.brand}'/><text x='32' y='42' font-family='Arial' font-weight='700' font-size='30' text-anchor='middle' fill='white'>${(meta.company || 'W').trim()[0].toUpperCase()}</text></svg>`)}`} />
+  </head>
+  <body class="min-h-dvh">
+    {isPreview && (
+      <div class="sticky top-0 z-50 border-b border-amber-200 bg-amber-50 text-amber-950">
+        <div class="container-x flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+          <p class="leading-snug">
+            <span class="font-bold">Unverbindlicher Entwurf</span> für {meta.company}, erstellt von {meta.sender_name}.
+          </p>
+          <a class="rounded-full bg-amber-900 px-4 py-1.5 text-xs font-bold text-white hover:bg-amber-800" href={`mailto:${meta.reply_to}?subject=${encodeURIComponent('Entwurf ' + meta.company)}`}>Interesse? Antworten</a>
+        </div>
+      </div>
+    )}
+    <slot />
+  </body>
+</html>

@@ -1,0 +1,21 @@
+---
+import Base from '../layouts/Base.astro';
+import { allPreviews, templateFor, PROMOTE_SLUG } from '../lib/load';
+
+const promoted = PROMOTE_SLUG ? allPreviews().find((p) => p.meta.slug === PROMOTE_SLUG) : undefined;
+if (PROMOTE_SLUG && !promoted) throw new Error(`PROMOTE_SLUG=${PROMOTE_SLUG} not found in src/data/previews`);
+const Template = promoted ? templateFor(promoted.content.industry) : null;
+const emptyMeta = { slug: 'index', company: 'Vorschau', sender_name: '', brand_name: '', reply_to: '', created_at: '', mode: 'preview' as const };
+---
+{promoted ? (
+  <Base title={`${promoted.content.company_name.value}${promoted.content.city ? ' – ' + promoted.content.city : ''}`} description={promoted.content.hero_text} meta={promoted.meta}>
+    <Template content={promoted.content} meta={promoted.meta} />
+  </Base>
+) : (
+  <Base title="Vorschau" meta={emptyMeta}>
+    <main class="container-x section text-center">
+      <h1 class="text-2xl font-extrabold">Hier gibt es nichts zu sehen.</h1>
+      <p class="mt-3 text-slate-600">Entwürfe sind nur über ihren persönlichen Link erreichbar.</p>
+    </main>
+  </Base>
+)}

@@ -1,0 +1,7 @@
+# Manuell gepflegte Sperrliste: Domains, die nie kontaktiert werden (Ketten, Franchise, Portale).
+# Eine Domain pro Zeile, ohne "www.". # = Kommentar.
+academy-fahrschule.de
+fahrschule-academy.de
+123fahrschule.de
+fahrschule123.de
+drivolino.de
