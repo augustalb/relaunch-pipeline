@@ -15,8 +15,8 @@ _headers, robots.txt  für Cloudflare Pages
 
 Alle Platzhalter sind gelb markiert und stehen in eckigen Klammern. Suchen: `class="ph"`.
 
-- Impressum: Name, Anschrift, Telefon, USt-IdNr. oder Kleinunternehmer-Hinweis.
-- Datenschutz: Datum, Name und Anschrift, tatsächlich genutzte Anbieter, Löschfrist, Aufsichtsbehörde.
+- Impressum: Telefon, USt-IdNr. oder Kleinunternehmer-Hinweis.
+- Datenschutz: Löschfrist. Anbieterliste anpassen, falls ein Dienst wegfällt (z. B. MillionVerifier).
 - **Beide Rechtstexte von Anwalt oder IHK prüfen lassen.** Sie sind ein Entwurf, keine Rechtsberatung.
 - `info@diaktoros.de` muss erreichbar sein (Alias in Google Workspace, siehe `docs/DOMAINS.md`).
 - Die Zusage „Antwort innerhalb von zwei Werktagen“ auf der Startseite nur stehen lassen, wenn sie stimmt.
