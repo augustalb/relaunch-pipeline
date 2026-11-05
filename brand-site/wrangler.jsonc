@@ -1,0 +1,12 @@
+// Cloudflare Workers static-assets config for the diaktoros.de brand site.
+// In the Cloudflare dashboard set Settings → Build → Root directory = brand-site,
+// deploy command `npx wrangler deploy`. Only this folder is uploaded.
+{
+  "name": "diaktoros-site",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": ".",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "none"
+  }
+}
