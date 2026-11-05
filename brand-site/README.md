@@ -28,13 +28,21 @@ python3 -m http.server 8811 -d brand-site
 ```
 Dann http://127.0.0.1:8811 öffnen.
 
-## Veröffentlichen (Cloudflare Pages)
+## Veröffentlichen (Cloudflare Workers, mit GitHub verbunden)
 
-1. Pages-Projekt anlegen und hochladen:
-   `npx wrangler pages project create diaktoros-site --production-branch main`
-   `npx wrangler pages deploy brand-site --project-name diaktoros-site`
-2. Für die Hauptdomain `diaktoros.de` (ohne `www`) verlangt Cloudflare Pages, dass die Domain ihre DNS bei Cloudflare hat.
-   Dafür in Cloudflare „Website hinzufügen“ (Free-Plan), Cloudflare übernimmt die vorhandenen Einträge.
-   **Vor dem Umstellen prüfen, dass MX, SPF, DKIM und DMARC vollständig übernommen wurden**, dann bei Squarespace die Nameserver auf Cloudflare ändern.
-3. Im Pages-Projekt `diaktoros.de` und `www.diaktoros.de` als Custom Domains hinzufügen.
-   `preview.diaktoros.de` gehört zum anderen Projekt `relaunch-previews`.
+Das Projekt `diaktoros-site` in Cloudflare ist mit diesem Repository verbunden. Jeder Push auf `main` veröffentlicht neu.
+
+Einstellungen unter Settings → Build:
+
+| Feld | Wert |
+|---|---|
+| Root directory | `brand-site` |
+| Build command | leer |
+| Deploy command | `npx wrangler deploy` |
+
+`wrangler.jsonc` legt fest, dass nur dieser Ordner als statische Seite hochgeladen wird; `.assetsignore` hält Konfiguration und README raus.
+
+Eigene Domain: Für `diaktoros.de` muss die Domain ihre DNS bei Cloudflare haben („Add a domain“, Free-Plan).
+**Vor dem Umstellen der Nameserver bei Squarespace prüfen, dass MX, SPF, DKIM (`google._domainkey`) und DMARC übernommen wurden.**
+Danach im Worker unter Settings → Domains & Routes `diaktoros.de` und `www.diaktoros.de` als Custom Domain hinzufügen.
+`preview.diaktoros.de` gehört zum separaten Pages-Projekt `relaunch-previews` der Pipeline.
