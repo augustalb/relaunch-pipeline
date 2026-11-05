@@ -29,11 +29,20 @@ nachschlägt, landet auf der Markenseite.
 
 1. **Markenseite `diaktoros.de` umbauen.** Die Seite beschreibt noch Vertrieb für Cybersecurity. Neu: kurze
    Seite „Neue Websites für Fahrschulen“ mit Impressum und Datenschutz. Muss fertig sein, **bevor** die erste Mail rausgeht.
-2. **Google Workspace neu buchen** mit drei Postfächern, eines je Versanddomain, Namen wie eine echte Person
-   (z. B. `august@diaktoros-growth.de`). Die Versanddomains als zusätzliche Domains hinzufügen.
-   `diaktoros.de` ebenfalls hinzufügen, aber **ohne eigenes Postfach**: `info@` und `admin@diaktoros.de` als
-   kostenlose Aliasse an ein vorhandenes Postfach hängen.
-3. **DKIM erneuern.** In der Admin-Konsole je Domain einen neuen Schlüssel erzeugen (Apps → Gmail →
+2. **Google Workspace neu buchen** (Business Starter), Registrierung mit `diaktoros.de` als Hauptdomain.
+   Vier Postfächer:
+
+   | Postfach | Aufgabe |
+   |---|---|
+   | `august@diaktoros.de` | Hauptkonto/Admin, **versendet nie Kaltmails**; `info@` und `admin@diaktoros.de` als Aliasse |
+   | `august@diaktoros-growth.de` | Versand |
+   | `a.albrecht@diaktoros-growth.com` | Versand |
+   | `albrecht@diaktoros-pipeline.com` | Versand |
+
+   Versanddomains als **sekundäre Domains** hinzufügen (nicht als Alias-Domain). Admin getrennt vom Versand,
+   damit eine Sperre eines Versandpostfachs nicht den Zugang zur Admin-Konsole kostet.
+   Meldet Google die Domain als belegt, hängt sie noch am alten gekündigten Konto: dort reaktivieren oder löschen.
+3. **DKIM erneuern.** In der Admin-Konsole für alle vier Domains einen neuen Schlüssel erzeugen (Apps → Gmail →
    E-Mails authentifizieren) und den TXT-Eintrag `google._domainkey` bei Squarespace ersetzen. Danach „Authentifizierung starten“.
 4. **Weiterleitung** aller eingehenden Mails an `auguyoga@gmail.com` (Admin-Konsole → Gmail → Routing).
 5. **Instantly:** die drei Postfächer verbinden, Warm-up an, Custom-Tracking-Domain je Versanddomain (CNAME bei Squarespace).
@@ -46,6 +55,6 @@ nachschlägt, landet auf der Markenseite.
 
 | Posten | ca. pro Monat |
 |---|---|
-| Google Workspace, 3 Postfächer | 20–25 € |
+| Google Workspace, 4 Postfächer (1 Admin + 3 Versand) | 28–32 € |
 | Instantly Growth | 35 € |
 | Domains (Verlängerung auf den Monat umgelegt) | 5 € |
