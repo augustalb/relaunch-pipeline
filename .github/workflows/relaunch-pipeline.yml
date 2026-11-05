@@ -1,0 +1,101 @@
+# Täglicher, unbeaufsichtigter Lauf der Akquise-Pipeline.
+# Läuft Mo–Fr um 07:40 UTC (= 08:40 Berlin im Winter, 09:40 im Sommer) und zusätzlich 12:40 UTC,
+# damit Versand im Fenster 8–17 Uhr landet und Antworten zweimal täglich synchronisiert werden.
+name: relaunch-pipeline
+
+on:
+  schedule:
+    - cron: "40 7 * * 1-5"
+    - cron: "40 12 * * 1-5"
+  workflow_dispatch:
+    inputs:
+      stage:
+        description: "Stufe (all | discovery | scoring | contact | extraction | generation | preview | screenshots | sending | sync | housekeeping | report)"
+        default: "all"
+      limit:
+        description: "Max. Leads pro Stufe (leer = Config)"
+        default: ""
+
+concurrency:
+  group: relaunch-pipeline
+  cancel-in-progress: false
+
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      LOG_JSON: "true"
+      ENV: prod
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      GOOGLE_PLACES_API_KEY: ${{ secrets.GOOGLE_PLACES_API_KEY }}
+      PAGESPEED_API_KEY: ${{ secrets.PAGESPEED_API_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      INSTANTLY_API_KEY: ${{ secrets.INSTANTLY_API_KEY }}
+      INSTANTLY_CAMPAIGN_ID: ${{ secrets.INSTANTLY_CAMPAIGN_ID }}
+      MILLIONVERIFIER_API_KEY: ${{ secrets.MILLIONVERIFIER_API_KEY }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      # Nicht-geheime Einstellungen als Repository Variables (Settings → Secrets and variables → Actions → Variables)
+      SENDER_NAME: ${{ vars.SENDER_NAME }}
+      SENDER_TITLE: ${{ vars.SENDER_TITLE }}
+      SENDER_ADDRESS: ${{ vars.SENDER_ADDRESS }}
+      SENDER_PHONE: ${{ vars.SENDER_PHONE }}
+      PREVIEW_DOMAIN: ${{ vars.PREVIEW_DOMAIN }}
+      SENDER_BACKEND: ${{ vars.SENDER_BACKEND || 'dryrun' }}
+      AUTO_APPROVE: ${{ vars.AUTO_APPROVE || 'false' }}
+      REPORT_EMAIL_TO: ${{ vars.REPORT_EMAIL_TO }}
+      REPORT_EMAIL_FROM: ${{ vars.REPORT_EMAIL_FROM }}
+      DAILY_SEND_LIMIT_START: ${{ vars.DAILY_SEND_LIMIT_START || '30' }}
+      DAILY_SEND_LIMIT_MAX: ${{ vars.DAILY_SEND_LIMIT_MAX || '150' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: site/package-lock.json
+
+      - name: Install Python deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[postgres]"
+          python -m playwright install --with-deps chromium
+
+      - name: Install site deps
+        run: npm ci --no-audit --no-fund
+        working-directory: site
+
+      - name: Doctor
+        run: pipeline doctor
+
+      - name: Run pipeline
+        run: |
+          ARGS="--stage ${{ github.event.inputs.stage || 'all' }}"
+          if [ -n "${{ github.event.inputs.limit }}" ]; then ARGS="$ARGS --limit ${{ github.event.inputs.limit }}"; fi
+          pipeline run $ARGS | tee run-summary.json
+
+      - name: Report
+        if: always()
+        run: pipeline report --email >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload artifacts (Screenshots, Outbox, Summary)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-${{ github.run_id }}
+          path: |
+            screenshots
+            outbox
+            run-summary.json
+          if-no-files-found: ignore
+          retention-days: 14

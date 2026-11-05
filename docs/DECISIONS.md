@@ -2,11 +2,11 @@
 
 Format je Eintrag: Kontext → Wahl → Begründung → Alternativen.
 
-## 1. Repository-Struktur: Unterordner `relaunch-pipeline/` im bestehenden Repo
-- **Kontext:** Der Auftrag kam in das Repo der iOS-App „Bet Against Yourself“. Ein eigenes Repo konnte nicht angelegt werden (keine Accounts/Repos anlegen).
-- **Wahl:** Alles in `relaunch-pipeline/`, Workflows unter `.github/workflows/relaunch-pipeline*.yml` mit `working-directory`.
-- **Begründung:** Lauffähig ohne neue Infrastruktur; der Ordner ist in sich geschlossen und kann später per `git subtree split` in ein eigenes Repo wandern.
-- **Alternativen:** Eigenes Repo (empfohlen vor Go-live, siehe GO-LIVE.md), Monorepo-Tooling (übertrieben).
+## 1. Repository-Struktur: eigenständiges Repo `augustalb/relaunch-pipeline`
+- **Kontext:** Das Projekt hat nichts mit anderen Produkten zu tun und braucht eigene Secrets, Workflows und Historie.
+- **Wahl:** Eigenes Repo, Python-Paket und Astro-Site im Wurzelverzeichnis, Workflows unter `.github/workflows/`.
+- **Begründung:** Saubere Trennung von Secrets, Actions-Minuten, Issues und Zugriffsrechten; die tägliche Pipeline läuft unabhängig.
+- **Alternativen:** Unterordner in einem bestehenden Repo (verworfen: vermischt fremde Projekte), Monorepo-Tooling (übertrieben).
 
 ## 2. Sprache/Stack: Python 3.11+ (Pipeline) und Astro 5 + Tailwind 4 (Sites)
 - **Wahl:** Wie vorgegeben. Python-Pakete: httpx, BeautifulSoup/lxml, pydantic 2, SQLAlchemy 2, typer, FastAPI, Playwright, anthropic.

@@ -11,7 +11,7 @@ Alles läuft **ohne Keys im Dry-Run** (`pipeline demo`), degradiert pro Stufe sa
 und täglich unbeaufsichtigt in GitHub Actions.
 
 ```bash
-cd relaunch-pipeline
+git clone https://github.com/augustalb/relaunch-pipeline && cd relaunch-pipeline
 python3 -m venv .venv && . .venv/bin/activate
 pip install -e ".[dev]" && python -m playwright install chromium
 (cd site && npm ci)
