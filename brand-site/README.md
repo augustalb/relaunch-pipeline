@@ -1,6 +1,6 @@
 # Markenseite diaktoros.de
 
-Statische Seite ohne JavaScript, ohne Cookies, ohne externe Requests. Schrift Manrope (OFL, `assets/fonts/OFL-LICENSE.txt`) selbst gehostet.
+Statische Seite ohne Cookies, Tracking oder externe Requests. Nur ein kleines Inline-Skript für Einblend-Effekte und den Vorher-Nachher-Regler; ohne JavaScript bleibt alles lesbar. Schriften Manrope und Instrument Serif (beide OFL, Lizenzen in `assets/fonts/`) selbst gehostet.
 Die Beispielbilder stammen aus dem Demo-Lauf mit der fiktiven „Fahrschule Müller“ (`docs/demo/`).
 
 ```
@@ -15,7 +15,7 @@ _headers, robots.txt  für Cloudflare Pages
 
 Alle Platzhalter sind gelb markiert und stehen in eckigen Klammern. Suchen: `class="ph"`.
 
-- Impressum: Telefon, USt-IdNr. oder Kleinunternehmer-Hinweis.
+- Impressum: Telefonnummer. Eine USt-IdNr. nur ergänzen, falls Sie eine bekommen.
 - Datenschutz: Löschfrist. Anbieterliste anpassen, falls ein Dienst wegfällt (z. B. MillionVerifier).
 - **Beide Rechtstexte von Anwalt oder IHK prüfen lassen.** Sie sind ein Entwurf, keine Rechtsberatung.
 - `info@diaktoros.de` muss erreichbar sein (Alias in Google Workspace, siehe `docs/DOMAINS.md`).
