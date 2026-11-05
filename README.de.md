@@ -110,6 +110,8 @@ Hinweis privates Repo: ein Lauf braucht ca. 10–15 Minuten, zwei Läufe/Tag ≈
 
 ### 2.3 Domain-Setup
 
+Konkreter Plan mit den vorhandenen Diaktoros-Domains: **[docs/DOMAINS.md](docs/DOMAINS.md)**. Allgemeines Muster:
+
 **1 Hauptdomain** (z. B. `seitenwechsel.de`):
 - `preview.seitenwechsel.de` → Cloudflare Pages Custom Domain für das Projekt `relaunch-previews` (= `PREVIEW_DOMAIN`).
 - Kundenseiten laufen später als eigene Pages-Projekte unter der Kundendomain; `promote` gibt die DNS-Anleitung aus (MX wird nie angefasst).

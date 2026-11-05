@@ -87,3 +87,9 @@ Format je Eintrag: Kontext → Wahl → Begründung → Alternativen.
 
 ## 17. Keine Preise in der Erstmail
 - Vorgabe. Preise liegen nur in der Config (`SETUP_PRICE`, `MONTHLY_PRICE`) für spätere Angebots-Templates.
+
+## 18. Marke und Domains: vorhandene Diaktoros-Domains umwidmen
+- **Kontext:** Aus einem beendeten Projekt existieren `diaktoros.de`, `diaktoros-growth.de`, `diaktoros-growth.com`, `diaktoros-pipeline.com` mit fertigem SPF/DKIM/DMARC, ohne Sperrlisten-Einträge. Google Workspace war gekündigt.
+- **Wahl:** `Diaktoros` wird die Marke. `diaktoros.de` = Hauptdomain (Markenseite + `preview.diaktoros.de`), die anderen drei = Versanddomains. Details: `docs/DOMAINS.md`.
+- **Begründung:** Gealterte Domains mit sauberer Historie, kein Neukauf. Die Weiterleitung der Versanddomains auf die Hauptdomain existiert schon. Warm-up muss trotzdem neu laufen, weil die Postfächer gelöscht sind.
+- **Alternativen:** Neue Marke kaufen (z. B. „Seitenwechsel“): kostet Domains und startet mit null Domain-Alter.
