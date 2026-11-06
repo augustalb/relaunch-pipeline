@@ -2,7 +2,8 @@
 
 Used after fixing contact extraction or generation: leads in `pending_review`
 (never approved, never sent) go back to `qualified` and run through the
-chain again. Preview slug and URL are kept, so links stay stable.
+chain again. These leads were never sent, so the preview link is rebuilt as well
+(it contains the company name, which may have been wrong).
 """
 
 from __future__ import annotations
@@ -17,6 +18,8 @@ log = get_logger("redo")
 _RESET_FIELDS = (
     "owner_name", "owner_salutation", "extracted", "generated", "validator_warnings",
     "email_subject", "email_body", "followup_1_body", "followup_2_body", "screenshot_before", "screenshot_after",
+    # never sent, so the link was never shared: rebuild it from the (corrected) company name
+    "preview_path", "preview_url", "preview_deployed_at",
 )
 
 
