@@ -15,6 +15,9 @@ on:
       limit:
         description: "Max. Leads pro Stufe (leer = Config)"
         default: ""
+      cities_file:
+        description: "Städteliste (leer = Variable REGION_CITIES_FILE bzw. config/cities_nrw.txt), z. B. config/cities_nrw_klein.txt"
+        default: ""
 
 concurrency:
   group: relaunch-pipeline
@@ -47,6 +50,7 @@ jobs:
       SENDER_ADDRESS: ${{ vars.SENDER_ADDRESS }}
       SENDER_PHONE: ${{ vars.SENDER_PHONE }}
       PREVIEW_DOMAIN: ${{ vars.PREVIEW_DOMAIN }}
+      REGION_CITIES_FILE: ${{ github.event.inputs.cities_file || vars.REGION_CITIES_FILE || 'config/cities_nrw.txt' }}
       BRAND_NAME: ${{ vars.BRAND_NAME }}
       SENDER_BACKEND: ${{ vars.SENDER_BACKEND || 'dryrun' }}
       AUTO_APPROVE: ${{ vars.AUTO_APPROVE || 'false' }}
