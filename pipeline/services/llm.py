@@ -46,7 +46,7 @@ class AnthropicLLM:
         except anthropic.RateLimitError:
             raise
         except anthropic.APIStatusError as e:
-            log.error("anthropic api error", status=e.status_code, msg=str(e)[:300])
+            log.error("anthropic api error", status=e.status_code, err=str(e)[:500])
             raise
         usage = response.usage
         eur = (usage.input_tokens / 1e6) * s.COST_LLM_INPUT_PER_MTOK_EUR + (usage.output_tokens / 1e6) * s.COST_LLM_OUTPUT_PER_MTOK_EUR

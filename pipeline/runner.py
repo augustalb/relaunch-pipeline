@@ -7,11 +7,13 @@ from datetime import datetime
 from .costs import CostTracker
 from .db import RunLog, session_scope, utcnow
 from .log import get_logger
-from .stages import contact, discovery, extraction, generation, housekeeping, preview, scoring, screenshots, sending, sync
+from .stages import contact, discovery, extraction, generation, housekeeping, preview, redo, scoring, screenshots, sending, sync
 
 log = get_logger("runner")
 
 STAGES = ["housekeeping", "sync", "discovery", "scoring", "contact", "extraction", "generation", "preview", "screenshots", "sending", "report"]
+# Not part of "all": send leads waiting in review through contact -> screenshots again (after fixes).
+REDO_CHAIN = ["contact", "extraction", "generation", "preview", "screenshots"]
 
 
 def run_stage(name: str, limit: int | None, costs: CostTracker, *, deploy: bool = True, force_window: bool = False) -> dict:
@@ -35,6 +37,11 @@ def run_stage(name: str, limit: int | None, costs: CostTracker, *, deploy: bool 
         return screenshots.run(limit)
     if name == "sending":
         return sending.run(limit, force_window=force_window)
+    if name == "redo_review":
+        out = {"reset": redo.reset_pending(limit)}
+        for step in REDO_CHAIN:
+            out[step] = run_stage(step, limit, costs, deploy=deploy, force_window=force_window)
+        return out
     if name == "report":
         from .report import build_report, format_report, send_report_email
 

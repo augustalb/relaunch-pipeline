@@ -24,7 +24,7 @@ def _init(log_level: str = typer.Option(None, help="DEBUG/INFO/WARNING"), json_l
 
 @app.command()
 def run(
-    stage: str = typer.Option("all", help="all | " + " | ".join(__import__("pipeline.runner", fromlist=["STAGES"]).STAGES)),
+    stage: str = typer.Option("all", help="all | redo_review | " + " | ".join(__import__("pipeline.runner", fromlist=["STAGES"]).STAGES)),
     limit: Optional[int] = typer.Option(None, help="max. Leads pro Stufe"),
     no_deploy: bool = typer.Option(False, "--no-deploy", help="Preview nur lokal bauen"),
     force_window: bool = typer.Option(False, "--force-window", help="Versandfenster ignorieren (nur Dry-Run/Tests)"),

@@ -19,6 +19,17 @@ _NAME = rf"((?:(?:Herr|Frau|Dipl\.-Ing\.|Dr\.|Prof\.)[ \t]+)?{_WORD}(?:[ \t]+{_W
 _LABEL_NAME_RE = re.compile(r"(?i:" + _LABELS + r")[ \t]*:?[ \t]*\n?[ \t]*" + _NAME)
 _TITLE_RE = re.compile(rf"\b(Herr|Frau)[ \t]+((?:Dr\.[ \t]+)?{_WORD}[ \t]+{_WORD})")
 _STOPWORDS = {"Fahrschule", "GmbH", "UG", "Inhaber", "Impressum", "Kontakt", "Telefon", "Straße", "Strasse", "Angaben", "Gemäß", "Gemäss", "Umsatzsteuer", "Steuernummer", "Haftung", "Postfach"}
+# Words that the label regex picks up from imprint / privacy boilerplate ("Verantwortliche Stelle", "Weitere Informationen").
+_STOPWORDS |= set(
+    """Weitere Informationen Information Ihre Ihr Ihren Dienste Dienst Verantwortliche Verantwortlicher Verantwortlich Stelle
+    Datenschutz Datenschutzerklärung Kontaktdaten Website Webseite Seite Inhalt Inhalte Hinweis Hinweise Rechtliche Allgemeine
+    Daten Der Die Das Den Dem Unsere Unser Unseren Sie Wir Bei Für Mit Von Zur Zum Name Anschrift Adresse Registergericht
+    Amtsgericht Handelsregister Registernummer Aufsichtsbehörde Berufsbezeichnung Kammer Bildnachweis Bildnachweise Quelle
+    Quellen Copyright Design Webdesign Gestaltung Programmierung Hosting Bundesrepublik Deutschland Mail Fax Mobil Handy
+    Internet Streitschlichtung Plattform Europäische Kommission Online Verbraucher Dienstanbieter Diensteanbieter Anbieter
+    Person Personen Juristische Gesellschaft Geschäftsführung Vorstand Leitung Team Büro Öffnungszeiten Mehr Hier Alle Jetzt
+    Sitz Firma Unternehmen Betrieb Fahrlehrer Fahrlehrerin Ausbildung Anmeldung Theorie Praxis Klasse Klassen Preise""".split()
+)
 
 
 def extract_owner(text: str) -> tuple[str | None, str | None]:

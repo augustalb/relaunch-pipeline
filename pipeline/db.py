@@ -67,7 +67,7 @@ ALLOWED_TRANSITIONS: dict[LeadStatus, set[LeadStatus]] = {
     LeadStatus.CONTACT_FOUND: {LeadStatus.EXTRACTED, LeadStatus.DISQUALIFIED},
     LeadStatus.EXTRACTED: {LeadStatus.GENERATED, LeadStatus.DISQUALIFIED},
     LeadStatus.GENERATED: {LeadStatus.PENDING_REVIEW, LeadStatus.APPROVED},
-    LeadStatus.PENDING_REVIEW: {LeadStatus.APPROVED, LeadStatus.REJECTED},
+    LeadStatus.PENDING_REVIEW: {LeadStatus.APPROVED, LeadStatus.REJECTED, LeadStatus.QUALIFIED},  # QUALIFIED = redo_review
     LeadStatus.APPROVED: {LeadStatus.QUEUED, LeadStatus.REJECTED},
     LeadStatus.QUEUED: {LeadStatus.SENT, LeadStatus.REJECTED, LeadStatus.UNSUBSCRIBED},
     LeadStatus.SENT: {LeadStatus.REPLIED, LeadStatus.BOUNCED, LeadStatus.UNSUBSCRIBED, LeadStatus.EXPIRED},

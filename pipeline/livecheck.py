@@ -4,7 +4,7 @@ Each check makes one request that costs nothing:
 - Database: `SELECT 1` (also creates missing tables via get_engine()).
 - Google Places: Text Search with field mask `places.id` only (IDs-only SKU, not billed).
 - PageSpeed Insights: one mobile run against example.com (free API).
-- Anthropic: list models (free).
+- Anthropic: list models (free) and one tiny structured-output request with the real schema (< 0.01 cent).
 - Cloudflare: list Pages projects of the account (checks account ID and token permission).
 
 Key values are never printed; error bodies are truncated.
@@ -87,11 +87,28 @@ def check_anthropic(c: httpx.Client) -> CheckResult:
         "https://api.anthropic.com/v1/models",
         headers={"x-api-key": s.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01"},
     )
-    if r.status_code == 200:
-        ids = [m.get("id", "") for m in r.json().get("data", [])]
-        note = "verfügbar" if s.LLM_MODEL in ids else "NICHT in der Modellliste"
-        return CheckResult("Anthropic", "ok", f"{s.LLM_MODEL} {note}")
-    return CheckResult("Anthropic", "fehler", _short(r))
+    if r.status_code != 200:
+        return CheckResult("Anthropic", "fehler", _short(r))
+    ids = [m.get("id", "") for m in r.json().get("data", [])]
+    if s.LLM_MODEL not in ids:
+        return CheckResult("Anthropic", "fehler", f"{s.LLM_MODEL} NICHT in der Modellliste")
+    # The real generation schema must be accepted by structured outputs (a 400 here broke every LLM generation once).
+    from .schema import json_schema_for_llm
+
+    r = c.post(
+        "https://api.anthropic.com/v1/messages",
+        headers={"x-api-key": s.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01"},
+        json={
+            "model": s.LLM_MODEL,
+            "max_tokens": 64,
+            "messages": [{"role": "user", "content": "Schema check only. Fill minimal placeholder values."}],
+            "output_config": {"effort": "low", "format": {"type": "json_schema", "schema": json_schema_for_llm()}},
+        },
+        timeout=60,
+    )
+    if r.status_code != 200:
+        return CheckResult("Anthropic", "fehler", "Schema abgelehnt: " + _short(r))
+    return CheckResult("Anthropic", "ok", f"{s.LLM_MODEL} verfügbar, Schema akzeptiert (<0,01 Cent)")
 
 
 def check_cloudflare(c: httpx.Client) -> CheckResult:
