@@ -20,6 +20,11 @@ from ..util import absolutize, same_site
 
 log = get_logger("scoring")
 
+
+def _de(x: float, digits: int) -> str:
+    """German decimal comma for numbers in customer-facing findings."""
+    return f"{x:.{digits}f}".replace(".", ",")
+
 BUILDERS = {
     "jimdo": "Jimdo-Baukasten",
     "wix.com": "Wix-Baukasten",
@@ -182,7 +187,7 @@ def analyze_html(res: FetchResult, psi: PageSpeedResult | None, *, internal_chec
             secs = round(psi.lcp_ms / 1000)
             f.append(Finding("psi_lcp", 8 if psi.lcp_ms >= 6000 else 5, f"Ihre Website braucht auf dem Smartphone rund {secs} Sekunden, bis der Hauptinhalt sichtbar ist (gemessen mit Google PageSpeed).", str(secs), email_weight=14 if psi.lcp_ms >= 6000 else 8))
         if psi.cls is not None and psi.cls >= 0.25:
-            f.append(Finding("psi_cls", 6, f"Beim Laden verschieben sich Inhalte Ihrer Website deutlich (Layout-Shift {psi.cls:.2f}, Google-Grenzwert 0,1)."))
+            f.append(Finding("psi_cls", 6, f"Beim Laden verschieben sich Inhalte Ihrer Website deutlich (Layout-Shift {_de(psi.cls, 2)}, Google-Grenzwert 0,1)."))
         if psi.accessibility is not None and psi.accessibility < 0.7:
             f.append(Finding("psi_a11y", 5, f"Google PageSpeed bewertet die Barrierefreiheit Ihrer Website mit {int(round(psi.accessibility * 100))} von 100 Punkten."))
         if psi.seo is not None and psi.seo < 0.7:
@@ -192,7 +197,7 @@ def analyze_html(res: FetchResult, psi: PageSpeedResult | None, *, internal_chec
         size_kb = len(html.encode("utf-8", "ignore")) // 1024
         details["html_kb"] = size_kb
         if res.elapsed_ms and res.elapsed_ms > 3000:
-            f.append(Finding("slow_ttfb", 8, f"Ihre Startseite brauchte bei unserem Abruf {res.elapsed_ms / 1000:.1f} Sekunden, bis der Server geantwortet hat."))
+            f.append(Finding("slow_ttfb", 8, f"Ihre Startseite brauchte bei unserem Abruf {_de(res.elapsed_ms / 1000, 1)} Sekunden, bis der Server geantwortet hat."))
 
     # --- industry specific
     ind = industry_scoring or {}
