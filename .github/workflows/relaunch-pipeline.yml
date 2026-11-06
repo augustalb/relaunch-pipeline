@@ -23,6 +23,9 @@ concurrency:
 
 jobs:
   run:
+    # Scheduled runs only start once the repository variable PIPELINE_ENABLED is "true".
+    # Manual runs (Actions → relaunch-pipeline → Run workflow) always work.
+    if: github.event_name == 'workflow_dispatch' || vars.PIPELINE_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 90
     env:
@@ -44,6 +47,7 @@ jobs:
       SENDER_ADDRESS: ${{ vars.SENDER_ADDRESS }}
       SENDER_PHONE: ${{ vars.SENDER_PHONE }}
       PREVIEW_DOMAIN: ${{ vars.PREVIEW_DOMAIN }}
+      BRAND_NAME: ${{ vars.BRAND_NAME }}
       SENDER_BACKEND: ${{ vars.SENDER_BACKEND || 'dryrun' }}
       AUTO_APPROVE: ${{ vars.AUTO_APPROVE || 'false' }}
       REPORT_EMAIL_TO: ${{ vars.REPORT_EMAIL_TO }}
