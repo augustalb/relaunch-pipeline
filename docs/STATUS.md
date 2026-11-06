@@ -123,9 +123,9 @@ Erster Prüflauf am 06.11.2026: **alle fünf Dienste ok** (Datenbank, Places, Pa
 
 ## 8. Offene Punkte und Zeitplan
 
-1. **Testlauf mit 5 echten Fahrschulen**, noch ohne Versand (`SENDER_BACKEND=dryrun`). Danach Ergebnisse gemeinsam prüfen.
+1. **Erste Entwürfe prüfen** (Prüfbericht, siehe Abschnitt 10) und `preview.diaktoros.de` einrichten.
 2. **`preview.diaktoros.de`** als Custom Domain des Pages-Projekts `relaunch-previews` einrichten (Projekt entsteht beim ersten Deploy).
-3. **Bewertung der Websites verbessern:** PageSpeed allein ist kein gutes Maß für „veraltet“ (siehe Abschnitt 9).
+3. ~~Bewertung der Websites verbessern~~ – erledigt (Entscheidung 19).
 4. **Schriftliche Bestätigung des Anwalts** anfordern und ablegen.
 5. **Aufwärmung abwarten:** frühestens Ende November, sicherer Versandstart Anfang Dezember 2026.
 6. **Instantly-Kampagne** mit 3 Schritten anlegen, `INSTANTLY_API_KEY` und `INSTANTLY_CAMPAIGN_ID` als Secrets eintragen.
@@ -140,3 +140,23 @@ bis zu etwa die Hälfte der Punkte aus; der Rest kommt aus eigenen Prüfungen (H
 altes Copyright-Jahr, Baukasten, kaputte Links …). Schwächen: Eine moderne, aber langsame Baukasten-Seite kann als „schlecht“
 gelten; eine alt aussehende, aber schlanke Seite kann durchrutschen. Vorschlag: zusätzlich den Handy-Screenshot von der KI
 nach „wirkt veraltet / unübersichtlich“ bewerten lassen und PageSpeed niedriger gewichten.
+
+## 10. Testläufe am 06.11.2026
+
+| Lauf | Städte | Bewertet | Ausgewählt | Ergebnis |
+|---|---|---|---|---|
+| 1–3 | Köln | 45 | 0 | Kölner Fahrschulen meist modern; Bewertung danach überarbeitet (Bild-Urteil der KI, Handy-Messung, Schwelle 32) |
+| 4 | Rhein-Erft-Kreis (`config/cities_nrw_klein.txt`) | 20 | 9 | 6 mit Kontakt, 5 Entwürfe von der KI ohne Warnungen der Faktenprüfung |
+
+Kosten aller Läufe zusammen: rund 1,20 €, fast nur Google-Suche. KI ca. 0,5 Cent pro Entwurf.
+**Kleinere Städte sind deutlich ergiebiger als Großstädte.**
+
+**Prüfen und freigeben:** Jeder Lauf legt bei GitHub (Actions → Lauf → Artifacts) einen Prüfbericht `review/index.html` ab.
+Freigeben/ablehnen: „Run workflow“ mit den IDs in `approve` bzw. `reject`, Stufe `sending` (bei `SENDER_BACKEND=dryrun` nur Probe-Mails).
+Weitere Stufen: `review` (Bericht neu), `redo_review` (Entwürfe im Review neu erzeugen), `doctor` (Schlüssel prüfen).
+
+**Vor dem ersten echten Versand zwingend:** `preview.diaktoros.de` als Custom Domain des Cloudflare-Pages-Projekts
+`relaunch-previews` einrichten. Die Mails verlinken diese Adresse; die Entwürfe liegen bis dahin nur unter
+`relaunch-previews.pages.dev/<slug>/`.
+
+**Offen aus den Tests:** Ketten-Erkennung über Seiteninhalte; bei Fahrschulen mit mehreren Standorten Stadt und Name im Review prüfen.
