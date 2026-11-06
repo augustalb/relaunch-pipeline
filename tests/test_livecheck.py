@@ -70,3 +70,16 @@ def test_anthropic_schema_check(monkeypatch):
     r = livecheck.check_anthropic(_client(handler))
     assert seen == ["/v1/models", "/v1/messages"]
     assert r.failed and "Schema abgelehnt" in r.detail
+
+
+def test_anthropic_schema_timeout_is_not_a_failure(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "k3")
+    reset_settings_cache()
+
+    def handler(request):
+        if request.url.path == "/v1/models":
+            return httpx.Response(200, json={"data": [{"id": "claude-haiku-5-5"}]})
+        raise httpx.ReadTimeout("slow", request=request)
+
+    r = livecheck.check_anthropic(_client(handler))
+    assert not r.failed and "Zeitüberschreitung" in r.detail

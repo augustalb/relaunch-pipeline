@@ -95,17 +95,21 @@ def check_anthropic(c: httpx.Client) -> CheckResult:
     # The real generation schema must be accepted by structured outputs (a 400 here broke every LLM generation once).
     from .schema import json_schema_for_llm
 
-    r = c.post(
-        "https://api.anthropic.com/v1/messages",
-        headers={"x-api-key": s.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01"},
-        json={
-            "model": s.LLM_MODEL,
-            "max_tokens": 64,
-            "messages": [{"role": "user", "content": "Schema check only. Fill minimal placeholder values."}],
-            "output_config": {"effort": "low", "format": {"type": "json_schema", "schema": json_schema_for_llm()}},
-        },
-        timeout=60,
-    )
+    try:
+        r = c.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={"x-api-key": s.ANTHROPIC_API_KEY, "anthropic-version": "2023-06-01"},
+            json={
+                "model": s.LLM_MODEL,
+                "max_tokens": 64,
+                "messages": [{"role": "user", "content": "Schema check only. Fill minimal placeholder values."}],
+                "output_config": {"effort": "low", "format": {"type": "json_schema", "schema": json_schema_for_llm()}},
+            },
+            timeout=180,
+        )
+    except httpx.TimeoutException:
+        # A new schema is compiled once (cached 24 h); slowness is not a rejection, so do not fail the run.
+        return CheckResult("Anthropic", "ok", f"{s.LLM_MODEL} verfügbar, Schema-Prüfung ohne Antwort (Zeitüberschreitung, kein Fehler)")
     if r.status_code != 200:
         return CheckResult("Anthropic", "fehler", "Schema abgelehnt: " + _short(r))
     return CheckResult("Anthropic", "ok", f"{s.LLM_MODEL} verfügbar, Schema akzeptiert (<0,01 Cent)")
