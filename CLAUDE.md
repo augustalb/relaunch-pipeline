@@ -6,6 +6,10 @@ Eigenständiges Projekt: automatisierte Akquise für Website-Relaunches lokaler 
 Einstieg: **[README.de.md](README.de.md)**. Entscheidungen: **[docs/DECISIONS.md](docs/DECISIONS.md)**.
 Go-live: **[docs/GO-LIVE.md](docs/GO-LIVE.md)**.
 
+## Wichtigste Regel: keine claude.ai-Connectors
+- **Für dieses Projekt niemals die nativen Connectors/MCP-Server von claude.ai benutzen** (Supabase, Gmail, Google Drive, Notion, Resend, Stripe, PostHog, Canva, Figma usw.). Sie gehören zu anderen Projekten des Betreibers. Auch keine Lesezugriffe.
+- Zugriff auf Dienste dieses Projekts nur über eigene, projektbezogene Zugänge (Konten auf `august@diaktoros.de`), z. B. API-Schlüssel als GitHub-Secrets bzw. in einer eigenen Cloud-Umgebung für dieses Repository.
+
 ## Stack
 - Python 3.11+ Paket `pipeline/` (CLI `pipeline`), SQLAlchemy (SQLite lokal, Supabase Postgres in Produktion)
 - Astro 5 + Tailwind 4 in `site/`, Branchen-Templates in `industries/<branche>/site/Template.astro`
