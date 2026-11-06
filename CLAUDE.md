@@ -4,7 +4,7 @@ Eigenständiges Projekt: automatisierte Akquise für Website-Relaunches lokaler 
 (erste Branche Fahrschulen, Startregion NRW). Steht in keinem Zusammenhang mit anderen Projekten oder Apps.
 
 Einstieg: **[README.de.md](README.de.md)**. Entscheidungen: **[docs/DECISIONS.md](docs/DECISIONS.md)**.
-Go-live: **[docs/GO-LIVE.md](docs/GO-LIVE.md)**.
+Go-live: **[docs/GO-LIVE.md](docs/GO-LIVE.md)**. Aktueller Stand (Konten, Domains, offene Punkte): **[docs/STATUS.md](docs/STATUS.md)**.
 
 ## Wichtigste Regel: keine claude.ai-Connectors
 - **Für dieses Projekt niemals die nativen Connectors/MCP-Server von claude.ai benutzen** (Supabase, Gmail, Google Drive, Notion, Resend, Stripe, PostHog, Canva, Figma usw.). Sie gehören zu anderen Projekten des Betreibers. Auch keine Lesezugriffe.
