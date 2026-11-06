@@ -242,7 +242,14 @@ def get_engine():
     global _engine, _SessionLocal
     if _engine is None:
         url = get_settings().database_url
-        connect_args = {"check_same_thread": False} if url.startswith("sqlite") else {}
+        if url.startswith("sqlite"):
+            connect_args = {"check_same_thread": False}
+        elif url.startswith("postgresql+psycopg"):
+            # Supabase transaction pooler (port 6543) does not support server-side
+            # prepared statements; psycopg 3 would start using them after 5 executions.
+            connect_args = {"prepare_threshold": None}
+        else:
+            connect_args = {}
         _engine = create_engine(url, future=True, pool_pre_ping=True, connect_args=connect_args)
         if url.startswith("sqlite"):
 
