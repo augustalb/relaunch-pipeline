@@ -1,4 +1,4 @@
-"""Stage 2 – Scoring: PageSpeed Insights (mobile) + own HTML checks -> score 0..100 + findings."""
+"""Stage 2 – Scoring: own HTML checks + PageSpeed Insights (mobile) + visual LLM rating -> score 0..100 + findings."""
 
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ from ..http import FetchResult, client as http_client, fetch
 from ..industry import load_industry
 from ..log import get_logger
 from ..services.pagespeed import PageSpeedClient, PageSpeedResult, make_pagespeed_client
+from ..services.visual import PlaywrightScreenshotter, Screenshotter, VisualRater, make_visual_rater, visual_points
 from ..util import absolutize, same_site
 
 log = get_logger("scoring")
@@ -49,6 +50,8 @@ class Finding:
     points: int
     text: str  # German, factual, verifiable
     value: str | None = None
+    internal: bool = False  # True = only steers qualification, never shown in emails
+    email_weight: int | None = None  # ranking for email findings if it differs from the score points
 
 
 @dataclass
@@ -58,7 +61,8 @@ class ScoreResult:
     details: dict = field(default_factory=dict)
 
     def top_findings(self, n: int = 3) -> list[str]:
-        return [f.text for f in sorted(self.findings, key=lambda f: -f.points)[:n]]
+        usable = [f for f in self.findings if not f.internal and f.points > 0]
+        return [f.text for f in sorted(usable, key=lambda f: -(f.email_weight if f.email_weight is not None else f.points))[:n]]
 
 
 def _copyright_year(text: str) -> int | None:
@@ -70,7 +74,7 @@ def _copyright_year(text: str) -> int | None:
     return max(years) if years else None
 
 
-def analyze_html(res: FetchResult, psi: PageSpeedResult | None, *, internal_checks: list[int] | None = None, now: datetime | None = None, industry_scoring: dict | None = None) -> ScoreResult:
+def analyze_html(res: FetchResult, psi: PageSpeedResult | None, *, internal_checks: list[int] | None = None, now: datetime | None = None, industry_scoring: dict | None = None, visual: dict | None = None) -> ScoreResult:
     """Pure function: turn a fetched home page (+ PSI) into a score and findings."""
     now = now or utcnow()
     f: list[Finding] = []
@@ -171,12 +175,12 @@ def analyze_html(res: FetchResult, psi: PageSpeedResult | None, *, internal_chec
         if psi.performance is not None:
             perf = int(round(psi.performance * 100))
             if perf < 50:
-                f.append(Finding("psi_perf", 20, f"Google PageSpeed bewertet die mobile Ladeleistung Ihrer Website mit {perf} von 100 Punkten.", str(perf)))
+                f.append(Finding("psi_perf", 12, f"Google PageSpeed bewertet die mobile Ladeleistung Ihrer Website mit {perf} von 100 Punkten.", str(perf), email_weight=20))
             elif perf < 70:
-                f.append(Finding("psi_perf", 10, f"Google PageSpeed bewertet die mobile Ladeleistung Ihrer Website mit {perf} von 100 Punkten.", str(perf)))
+                f.append(Finding("psi_perf", 6, f"Google PageSpeed bewertet die mobile Ladeleistung Ihrer Website mit {perf} von 100 Punkten.", str(perf), email_weight=10))
         if psi.lcp_ms and psi.lcp_ms >= 4000:
             secs = round(psi.lcp_ms / 1000)
-            f.append(Finding("psi_lcp", 14 if psi.lcp_ms >= 6000 else 8, f"Ihre Website braucht auf dem Smartphone rund {secs} Sekunden, bis der Hauptinhalt sichtbar ist (gemessen mit Google PageSpeed).", str(secs)))
+            f.append(Finding("psi_lcp", 8 if psi.lcp_ms >= 6000 else 5, f"Ihre Website braucht auf dem Smartphone rund {secs} Sekunden, bis der Hauptinhalt sichtbar ist (gemessen mit Google PageSpeed).", str(secs), email_weight=14 if psi.lcp_ms >= 6000 else 8))
         if psi.cls is not None and psi.cls >= 0.25:
             f.append(Finding("psi_cls", 6, f"Beim Laden verschieben sich Inhalte Ihrer Website deutlich (Layout-Shift {psi.cls:.2f}, Google-Grenzwert 0,1)."))
         if psi.accessibility is not None and psi.accessibility < 0.7:
@@ -195,7 +199,15 @@ def analyze_html(res: FetchResult, psi: PageSpeedResult | None, *, internal_chec
     if ind.get("missing_services_page") and not re.search(r"klasse|führerschein|fuehrerschein", text, re.I):
         f.append(Finding("no_services", int(ind["missing_services_page"]), "Auf Ihrer Startseite ist nicht erkennbar, welche Führerscheinklassen Sie ausbilden."))
 
-    score = min(100, sum(x.points for x in f))
+    # --- visual first impression (LLM opinion on the mobile screenshot; internal only)
+    if visual:
+        details["visual"] = visual
+        pts = visual_points(visual)
+        if pts:
+            key = "visual_outdated" if pts > 0 else "visual_modern"
+            f.append(Finding(key, pts, "; ".join(visual.get("reasons") or []) or key, str(visual.get("outdated")), internal=True))
+
+    score = max(0, min(100, sum(x.points for x in f)))
     details["checks"] = {x.key: x.points for x in f}
     return ScoreResult(score, f, details)
 
@@ -224,7 +236,14 @@ def sample_internal_links(res: FetchResult, domain: str, http, max_links: int = 
     return codes
 
 
-def score_url(url: str, domain: str, psi_client: PageSpeedClient, industry_scoring: dict) -> tuple[ScoreResult, FetchResult]:
+def score_url(
+    url: str,
+    domain: str,
+    psi_client: PageSpeedClient,
+    industry_scoring: dict,
+    screenshotter: Screenshotter | None = None,
+    rater: VisualRater | None = None,
+) -> tuple[ScoreResult, FetchResult]:
     with http_client() as http:
         res = fetch(url, http)
         internal = sample_internal_links(res, domain, http) if res.ok else None
@@ -236,13 +255,36 @@ def score_url(url: str, domain: str, psi_client: PageSpeedClient, industry_scori
             log.warning(str(e))
         except Exception as e:
             log.warning("pagespeed failed", url=url, err=str(e))
-    return analyze_html(res, psi, internal_checks=internal, industry_scoring=industry_scoring), res
+    visual = None
+    if res.ok and screenshotter is not None and rater is not None:
+        try:
+            shot = screenshotter.capture(res.final_url)
+            visual = rater.rate(shot) if shot else None
+        except BudgetExceeded as e:
+            log.warning(str(e))
+        except Exception as e:  # noqa: BLE001 - visual check is optional
+            log.warning("visual check failed", url=url, err=str(e)[:200])
+    return analyze_html(res, psi, internal_checks=internal, industry_scoring=industry_scoring, visual=visual), res
 
 
-def run(limit: int | None = None, costs: CostTracker | None = None, psi_client: PageSpeedClient | None = None) -> dict:
+def run(
+    limit: int | None = None,
+    costs: CostTracker | None = None,
+    psi_client: PageSpeedClient | None = None,
+    rater: VisualRater | None = None,
+    screenshotter: Screenshotter | None = None,
+) -> dict:
+    costs = costs or CostTracker()
+    rater = rater if rater is not None else make_visual_rater(costs)
+    if rater is not None and screenshotter is None:
+        with PlaywrightScreenshotter() as shooter:
+            return _run(limit, costs, psi_client, rater, shooter)
+    return _run(limit, costs, psi_client, rater, screenshotter)
+
+
+def _run(limit, costs, psi_client, rater, screenshotter) -> dict:
     s = get_settings()
     industry = load_industry()
-    costs = costs or CostTracker()
     psi_client = psi_client or make_pagespeed_client(costs)
     stats = {"scored": 0, "qualified": 0, "disqualified": 0, "errors": 0}
     with session_scope() as session:
@@ -251,7 +293,7 @@ def run(limit: int | None = None, costs: CostTracker | None = None, psi_client: 
         with session_scope() as session:
             lead = session.get(Lead, lead_id)
             try:
-                result, res = score_url(lead.website, lead.domain, psi_client, industry.scoring)
+                result, res = score_url(lead.website, lead.domain, psi_client, industry.scoring, screenshotter, rater)
             except Exception as e:
                 stats["errors"] += 1
                 log.error("scoring failed", lead=lead_id, err=str(e))
