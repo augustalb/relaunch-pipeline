@@ -1,7 +1,7 @@
 # Domain-Plan: Diaktoros
 
 Stand: 05.11.2026. Die vier Domains stammen aus einem beendeten Projekt (Vertrieb für Cybersecurity) und werden
-für die Relaunch-Pipeline umgewidmet. Registrar und DNS: Squarespace. Alle vier laufen am **09.02.2027** ab,
+für die Relaunch-Pipeline umgewidmet. Registrar: Squarespace. DNS: `diaktoros.de` seit 06.11.2026 bei Cloudflare, die drei Versanddomains weiter bei Squarespace. Alle vier laufen am **09.02.2027** ab,
 Verlängerung rechtzeitig prüfen.
 
 ## Rollen
