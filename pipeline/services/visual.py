@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import base64
 import json
+from dataclasses import dataclass
 from typing import Protocol
 
 from ..config import get_settings
@@ -38,12 +39,48 @@ SYSTEM = (
     "Ignore the business itself and its prices. Be consistent: a clean responsive site built with a modern "
     "template is not outdated even if it is plain. Tiny unscaled desktop layouts, table layouts, default "
     "fonts, clip-art, cluttered navigation and visible broken elements indicate an outdated site. "
+    "Cookie/consent banners, chat widgets and pop-ups are overlays added by law or plugins: ignore them "
+    "completely and judge the page design behind them. "
     "Write the reasons in German, each under 12 words."
 )
 
+# Measured in the browser, so the numbers are facts (unlike the LLM opinion).
+METRICS_JS = """() => {
+  const vw = window.innerWidth;
+  const sw = Math.max(document.documentElement.scrollWidth, document.body ? document.body.scrollWidth : 0);
+  const scale = 390 / vw;  // pages without a viewport tag are laid out at ~980 px and shrunk
+  let total = 0, small = 0;
+  if (document.body) {
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+      const text = walker.currentNode.textContent.trim();
+      const el = walker.currentNode.parentElement;
+      if (text.length < 3 || !el) continue;
+      const cs = getComputedStyle(el);
+      if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+      const px = (parseFloat(cs.fontSize) || 0) * scale;
+      total += text.length;
+      if (px < 12) small += text.length;
+    }
+  }
+  return {device_width: 390, viewport_width: vw, page_width: sw, small_text_share: total ? small / total : 0};
+}"""
+
+
+@dataclass
+class Capture:
+    jpeg: bytes
+    device_width: int
+    viewport_width: int
+    page_width: int
+    small_text_share: float
+
+    def metrics(self) -> dict:
+        return {"device_width": self.device_width, "viewport_width": self.viewport_width, "page_width": self.page_width, "small_text_share": round(self.small_text_share, 3)}
+
 
 class Screenshotter(Protocol):
-    def capture(self, url: str) -> bytes | None: ...
+    def capture(self, url: str) -> Capture | None: ...
 
 
 class PlaywrightScreenshotter:
@@ -81,7 +118,7 @@ class PlaywrightScreenshotter:
                 pass
             self._pw = None
 
-    def capture(self, url: str) -> bytes | None:
+    def capture(self, url: str) -> Capture | None:
         if self._browser is None:
             return None
         s = get_settings()
@@ -93,8 +130,10 @@ class PlaywrightScreenshotter:
             page = ctx.new_page()
             page.goto(url, wait_until="load", timeout=s.HTTP_TIMEOUT_SECONDS * 1000)
             page.wait_for_timeout(800)
+            m = page.evaluate(METRICS_JS)
             height = min(CAPTURE_HEIGHT, int(page.evaluate("document.documentElement.scrollHeight") or VIEWPORT["height"]))
-            return page.screenshot(type="jpeg", quality=70, full_page=True, clip={"x": 0, "y": 0, "width": VIEWPORT["width"], "height": max(height, 400)})
+            jpeg = page.screenshot(type="jpeg", quality=70, full_page=True, clip={"x": 0, "y": 0, "width": VIEWPORT["width"], "height": max(height, 400)})
+            return Capture(jpeg, int(m["device_width"]), int(m["viewport_width"]), int(m["page_width"]), float(m["small_text_share"]))
         except Exception as e:  # noqa: BLE001
             log.warning("screenshot failed", url=url, err=str(e)[:200])
             return None

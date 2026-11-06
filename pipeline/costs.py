@@ -28,7 +28,7 @@ class CostTracker:
         self.totals[service] = self.totals.get(service, 0.0) + eur
         self.counts[service] = self.counts.get(service, 0) + 1
         with session_scope() as s:
-            s.add(CostEntry(run_id=self.run_id, service=service, units=units, eur=eur, note=note))
+            s.add(CostEntry(run_id=self.run_id, service=service, units=units, eur=eur, note=(note[:250] if note else note)))
 
     def check_requests(self, service: str, max_requests: int) -> None:
         if self.counts.get(service, 0) >= max_requests:
