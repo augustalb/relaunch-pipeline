@@ -1,0 +1,12 @@
+# Kleinere Städte in NRW (rund 20.000–70.000 Einwohner) für Tests jenseits der Großstädte.
+# Rhein-Erft-Kreis und Umgebung von Köln, eine pro Zeile.
+Frechen
+Pulheim
+Brühl
+Wesseling
+Kerpen
+Bergheim
+Hürth
+Erftstadt
+Bedburg
+Elsdorf
