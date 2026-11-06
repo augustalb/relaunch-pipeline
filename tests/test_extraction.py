@@ -76,3 +76,20 @@ def test_candidates_classes_prices_hours_team_address():
     assert [i["url"] for i in cand["images"]] == ["https://www.fahrschule-test.de/auto.jpg"]  # foreign domain dropped
     for item in cand["classes"] + cand["prices"] + cand["hours"] + cand["team"]:
         assert item["source"] == url
+
+
+
+def test_company_name_ignores_boilerplate():
+    assert extract_company_name("Redakteur / Fahrschule Daten\nFahrschule Geilert\n", "Fallback") == "Fahrschule Geilert"
+    assert extract_company_name("Datenschutz der Fahrschule\n", "Kraftfahrt-Zentrum NRW") == "Kraftfahrt-Zentrum NRW"
+    assert extract_company_name("Angaben gemäß § 5 DDG: Fahrschule Müller GmbH\n", None) == "Fahrschule Müller GmbH"
+    assert extract_company_name("Müller Fahrschule GmbH\n", None) == "Müller Fahrschule GmbH"
+
+
+def test_city_from_address():
+    from pipeline.names import city_from_address
+
+    assert city_from_address("Roisdorfer Str. 12, 53332 Bornheim, Deutschland") == "Bornheim"
+    assert city_from_address("Hauptstraße 3, 50321 Brühl") == "Brühl"
+    assert city_from_address("Bonner Str. 3, 53919 Weilerswist, Deutschland") == "Weilerswist"
+    assert city_from_address(None) is None and city_from_address("irgendwo") is None

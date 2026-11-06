@@ -13,6 +13,7 @@ log = get_logger("runner")
 
 STAGES = ["housekeeping", "sync", "discovery", "scoring", "contact", "extraction", "generation", "preview", "screenshots", "sending", "report"]
 # Not part of "all": send leads waiting in review through contact -> screenshots again (after fixes).
+# Extra stages: "review" (rebuild previews + screenshots + report), "review_export" (report only).
 REDO_CHAIN = ["contact", "extraction", "generation", "preview", "screenshots"]
 
 
@@ -41,7 +42,19 @@ def run_stage(name: str, limit: int | None, costs: CostTracker, *, deploy: bool 
         out = {"reset": redo.reset_pending(limit)}
         for step in REDO_CHAIN:
             out[step] = run_stage(step, limit, costs, deploy=deploy, force_window=force_window)
+        out["review_export"] = run_stage("review_export", limit, costs)
         return out
+    if name == "review":
+        # rebuild previews and screenshots (files do not survive between Actions runs), then write the report
+        return {
+            "preview": run_stage("preview", limit, costs, deploy=deploy),
+            "screenshots": run_stage("screenshots", limit, costs),
+            "review_export": run_stage("review_export", limit, costs),
+        }
+    if name == "review_export":
+        from .review.export import export
+
+        return export()
     if name == "report":
         from .report import build_report, format_report, send_report_email
 
@@ -55,7 +68,7 @@ def run_stage(name: str, limit: int | None, costs: CostTracker, *, deploy: bool 
 
 def run_all(stage: str = "all", limit: int | None = None, deploy: bool = True, force_window: bool = False) -> dict:
     costs = CostTracker()
-    names = STAGES if stage == "all" else [stage]
+    names = STAGES + ["review_export"] if stage == "all" else [stage]
     summary: dict[str, dict] = {}
     started = utcnow()
     for name in names:

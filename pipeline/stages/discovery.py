@@ -12,6 +12,7 @@ from ..costs import BudgetExceeded, CostTracker
 from ..db import Lead, LeadStatus, SearchLog, session_scope, utcnow
 from ..industry import load_industry
 from ..log import get_logger
+from ..names import city_from_address
 from ..services import blocklist as bl
 from ..services.places import Place, PlacesClient, make_places_client
 from ..util import normalize_url, read_list_file, registered_domain
@@ -87,7 +88,7 @@ def run(limit: int | None = None, cities: list[str] | None = None, costs: CostTr
                     lead = Lead(
                         industry=industry.name,
                         place_id=p.place_id,
-                        city=city,
+                        city=city_from_address(p.address) or city,  # the search city may differ (neighbouring towns)
                         website=normalize_url(p.website or ""),
                         domain=domain,
                         places_name=p.name,

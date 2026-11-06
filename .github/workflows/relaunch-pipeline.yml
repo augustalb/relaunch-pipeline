@@ -10,13 +10,19 @@ on:
   workflow_dispatch:
     inputs:
       stage:
-        description: "Stufe (doctor = nur Schlüssel prüfen | redo_review = Entwürfe im Review neu erzeugen | all | discovery | scoring | contact | extraction | generation | preview | screenshots | sending | sync | housekeeping | report)"
+        description: "Stufe (doctor = nur Schlüssel prüfen | review = Prüfbericht | redo_review = Entwürfe im Review neu erzeugen | all | discovery | scoring | contact | extraction | generation | preview | screenshots | sending | sync | housekeeping | report)"
         default: "all"
       limit:
         description: "Max. Leads pro Stufe (leer = Config)"
         default: ""
       cities_file:
         description: "Städteliste (leer = Variable REGION_CITIES_FILE bzw. config/cities_nrw.txt), z. B. config/cities_nrw_klein.txt"
+        default: ""
+      approve:
+        description: "Freigeben: Lead-IDs aus dem Prüfbericht, durch Leerzeichen oder Komma getrennt"
+        default: ""
+      reject:
+        description: "Ablehnen: Lead-IDs aus dem Prüfbericht, durch Leerzeichen oder Komma getrennt"
         default: ""
 
 concurrency:
@@ -86,6 +92,17 @@ jobs:
       - name: Doctor (live credential checks, free)
         run: pipeline doctor --live
 
+      - name: Review decisions (approve / reject)
+        if: github.event.inputs.approve != '' || github.event.inputs.reject != ''
+        env:
+          APPROVE_IDS: ${{ github.event.inputs.approve }}
+          REJECT_IDS: ${{ github.event.inputs.reject }}
+        run: |
+          APPROVE_IDS=$(echo "$APPROVE_IDS" | tr ',' ' ' | tr -cd '0-9 ')
+          REJECT_IDS=$(echo "$REJECT_IDS" | tr ',' ' ' | tr -cd '0-9 ')
+          if [ -n "$(echo $APPROVE_IDS)" ]; then pipeline approve $APPROVE_IDS; fi
+          if [ -n "$(echo $REJECT_IDS)" ]; then pipeline reject $REJECT_IDS --reason "im Review abgelehnt"; fi
+
       - name: Run pipeline
         if: github.event.inputs.stage != 'doctor'
         run: |
@@ -103,6 +120,7 @@ jobs:
         with:
           name: pipeline-${{ github.run_id }}
           path: |
+            review
             screenshots
             outbox
             run-summary.json
