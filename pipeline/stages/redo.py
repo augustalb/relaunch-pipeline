@@ -10,6 +10,7 @@ from __future__ import annotations
 from ..db import Lead, LeadStatus, leads_in_status, session_scope
 from ..industry import load_industry
 from ..log import get_logger
+from ..names import city_from_address
 
 log = get_logger("redo")
 
@@ -26,6 +27,7 @@ def reset_pending(limit: int | None = None) -> dict:
         for lead in leads_in_status(session, LeadStatus.PENDING_REVIEW, limit, industry.name):
             for f in _RESET_FIELDS:
                 setattr(lead, f, None)
+            lead.city = city_from_address(lead.places_address) or lead.city
             lead.transition(LeadStatus.QUALIFIED, "erneut verarbeiten (redo_review)", session)
             n += 1
     log.info("pending leads reset", count=n)

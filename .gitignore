@@ -16,3 +16,4 @@ customers/*/dist/
 customers/.build-backup/
 *.egg-info/
 brand-site/.wrangler/
+/review/

@@ -63,11 +63,33 @@ def extract_owner(text: str) -> tuple[str | None, str | None]:
     return None, None
 
 
+_LEGAL_FORM = re.compile(r"\b(GmbH|UG|e\.\s?K\.|GbR|OHG|KG|Inh\.)", re.I)
+_NOT_A_NAME = re.compile(
+    r"impressum|angaben gem[äa]ß|verantwortlich|redakteur|redaktion|daten|datenschutz|inhalt|seite|kontakt|"
+    r"anmeldung|preise|klasse|@|www\.|http|tel|/|\|",
+    re.I,
+)
+
+
 def extract_company_name(text: str, fallback: str | None) -> str | None:
-    """Company name from an imprint ("Fahrschule Müller GmbH") – first line mentioning the industry word."""
+    """Company name from an imprint ("Fahrschule Müller GmbH").
+
+    Only lines that look like a business name count: starting with "Fahrschule" or carrying a legal form,
+    and free of boilerplate words. Otherwise the Google business name (fallback) is more reliable.
+    """
     for line in text.splitlines():
         line = collapse_ws(line)
-        if 4 < len(line) < 70 and re.search(r"fahrschule", line, re.I) and not re.search(r"impressum|angaben gemäß|verantwortlich|@|www\.|http|tel", line, re.I):
-            line = re.sub(r"^(angaben\s+gem[äa]+ß\s+§\s*5\s+(tmg|ddg)\s*:?\s*)", "", line, flags=re.I)
-            return line.strip(" :-")
+        line = re.sub(r"^(angaben\s+gem[äa]+ß\s+§\s*5\s+(tmg|ddg)\s*:?\s*)", "", line, flags=re.I).strip(" :-")
+        if not (4 < len(line) < 70) or not re.search(r"fahrschule", line, re.I) or _NOT_A_NAME.search(line):
+            continue
+        if re.match(r"(?i)fahrschule", line) or _LEGAL_FORM.search(line):
+            return line
     return fallback
+
+
+def city_from_address(address: str | None) -> str | None:
+    """'Hauptstr. 1, 53332 Bornheim, Deutschland' -> 'Bornheim' (German postcode + town)."""
+    if not address:
+        return None
+    m = re.search(r"\b\d{5}\s+([^,\d]+)", address)
+    return collapse_ws(m.group(1)).strip() if m else None
