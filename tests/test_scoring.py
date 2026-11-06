@@ -61,8 +61,8 @@ SLOW_MODERN = """<!doctype html><html lang="de"><head><meta charset="utf-8"><tit
 
 def test_visual_points_mapping():
     assert visual_points(None) == 0
-    assert visual_points({"outdated": 9, "mobile_usability": 6, "reasons": []}) == 20
-    assert visual_points({"outdated": 4, "mobile_usability": 2, "reasons": []}) == 20
+    assert visual_points({"outdated": 9, "mobile_usability": 6, "reasons": []}) == 30
+    assert visual_points({"outdated": 4, "mobile_usability": 2, "reasons": []}) == 30
     assert visual_points({"outdated": 6, "mobile_usability": 7, "reasons": []}) == 10
     assert visual_points({"outdated": 5, "mobile_usability": 6, "reasons": []}) == 0
     assert visual_points({"outdated": 2, "mobile_usability": 9, "reasons": []}) == -15
@@ -81,7 +81,7 @@ def test_modern_looking_slow_site_is_not_qualified():
 def test_visual_finding_never_reaches_email_text():
     html = "<html><body><table><tr><td>Fahrschule</td></tr></table></body></html>"
     r = analyze_html(_res(html), None, now=NOW, visual={"outdated": 9, "mobile_usability": 2, "reasons": ["winzige Schrift", "Tabellenlayout"]})
-    assert r.details["checks"]["visual_outdated"] == 20
+    assert r.details["checks"]["visual_outdated"] == 30
     assert all("winzige Schrift" not in f for f in r.top_findings(10))
 
 
