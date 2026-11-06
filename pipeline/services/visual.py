@@ -241,7 +241,7 @@ def visual_points(rating: dict | None) -> int:
     outdated = rating["outdated"]
     usability = rating["mobile_usability"]
     if outdated >= 8 or usability <= 3:
-        return 20
+        return 30  # clearly outdated sites qualify even with few technical defects (DECISIONS 19)
     if outdated >= 6 or usability <= 5:
         return 10
     if outdated <= 3 and usability >= 7:
