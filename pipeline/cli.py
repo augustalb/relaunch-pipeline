@@ -128,7 +128,7 @@ def block(values: list[str] = typer.Argument(..., help="E-Mail-Adressen oder Dom
 
 
 @app.command()
-def doctor():
+def doctor(live: bool = typer.Option(False, "--live", help="Jeden Dienst einmal kostenlos abfragen; Exit-Code 1 bei Fehlern")):
     """Zeigt, welche Keys/Tools vorhanden sind und welche Stufen degradiert laufen."""
     import shutil
 
@@ -151,6 +151,17 @@ def doctor():
     for k, v in checks:
         t.add_row(k, str(v))
     rprint(t)
+
+    if live:
+        from .livecheck import run_live_checks
+
+        results = run_live_checks()
+        lt = Table("Live-Prüfung", "Status", "Details")
+        for r in results:
+            lt.add_row(r.name, r.status, r.detail)
+        rprint(lt)
+        if any(r.failed for r in results):
+            raise typer.Exit(code=1)
 
 
 def _playwright_status() -> str:
