@@ -67,8 +67,8 @@ Alle vier Domains laufen am **09.02.2027** ab → Verlängerung bei Squarespace 
 | Postfach | Aufgabe | Instantly |
 |---|---|---|
 | august@diaktoros.de (+ Aliasse info@, admin@) | Verwaltung, Kontaktadresse der Website. **Versendet nie Kaltmails.** | nicht verbunden |
-| august@diaktoros-growth.de | Versand | Aufwärmung seit 05.11.2026 |
-| a.albrecht@diaktoros-growth.com | Versand | Aufwärmung seit 06.11.2026 |
+| a.albrecht@diaktoros-growth.de | Versand | Aufwärmung seit 05.11.2026 |
+| august@diaktoros-growth.com | Versand | Aufwärmung seit 06.11.2026 |
 | albrecht@diaktoros-pipeline.com | Versand | Aufwärmung seit 06.11.2026 |
 
 Alle Postfächer leiten eine Kopie an **auguyoga@gmail.com** weiter (Kopie bleibt im Postfach, damit Instantly Antworten erkennt).

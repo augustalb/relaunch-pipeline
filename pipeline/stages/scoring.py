@@ -207,7 +207,8 @@ def analyze_html(res: FetchResult, psi: PageSpeedResult | None, *, internal_chec
         dw = mobile.get("device_width") or 390
         h_scroll = mobile.get("h_scroll") or 0
         if not has_no_viewport and h_scroll > 16:
-            f.append(Finding("mobile_overflow", 18, f"Auf dem Smartphone lässt sich Ihre Startseite um {h_scroll} Pixel seitlich verschieben, weil Inhalte über den Bildschirmrand ragen.", str(h_scroll)))
+            # a single slightly too wide image is a blemish; a desktop layout squeezed onto a phone is the real problem
+            f.append(Finding("mobile_overflow", 18 if h_scroll > 60 else 6, f"Auf dem Smartphone lässt sich Ihre Startseite um {h_scroll} Pixel seitlich verschieben, weil Inhalte über den Bildschirmrand ragen.", str(h_scroll)))
         share = mobile.get("small_text_share") or 0
         if not has_no_viewport and share >= 0.3:
             f.append(Finding("small_text", 8, f"Rund {int(round(share * 100))} % des Textes auf Ihrer Startseite erscheint auf dem Smartphone kleiner als 12 Pixel.", str(int(round(share * 100)))))

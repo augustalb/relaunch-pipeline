@@ -35,8 +35,8 @@ nachschlägt, landet auf der Markenseite.
    | Postfach | Aufgabe |
    |---|---|
    | `august@diaktoros.de` | Hauptkonto/Admin, **versendet nie Kaltmails**; `info@` und `admin@diaktoros.de` als Aliasse |
-   | `august@diaktoros-growth.de` | Versand |
-   | `a.albrecht@diaktoros-growth.com` | Versand |
+   | `a.albrecht@diaktoros-growth.de` | Versand |
+   | `august@diaktoros-growth.com` | Versand |
    | `albrecht@diaktoros-pipeline.com` | Versand |
 
    Versanddomains als **sekundäre Domains** hinzufügen (nicht als Alias-Domain). Admin getrennt vom Versand,

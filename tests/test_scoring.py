@@ -51,6 +51,7 @@ def test_broken_links_counted():
 
 # --- visual rating -----------------------------------------------------------------
 
+from pipeline.config import get_settings  # noqa: E402
 from pipeline.services.visual import visual_points  # noqa: E402
 
 SLOW_MODERN = """<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Neu</title><meta name="description" content="x">
@@ -73,7 +74,7 @@ def test_modern_looking_slow_site_is_not_qualified():
     without = analyze_html(_res(SLOW_MODERN, url=url, final=url), psi, now=NOW)
     with_visual = analyze_html(_res(SLOW_MODERN, url=url, final=url), psi, now=NOW, visual={"outdated": 2, "mobile_usability": 9, "reasons": ["modernes Layout"]})
     assert with_visual.score == without.score - 15
-    assert with_visual.score < 55, with_visual.details
+    assert with_visual.score < get_settings().SCORE_THRESHOLD, with_visual.details
     assert with_visual.details["visual"]["outdated"] == 2
 
 
@@ -123,3 +124,9 @@ def test_no_double_count_without_viewport():
     r = analyze_html(_res(html), None, now=NOW, mobile={"device_width": 390, "viewport_width": 980, "page_width": 980, "small_text_share": 0.9})
     assert "no_viewport" in r.details["checks"]
     assert "mobile_overflow" not in r.details["checks"] and "small_text" not in r.details["checks"]
+
+
+def test_small_overflow_counts_less():
+    url = "https://a.de/"
+    r = analyze_html(_res(MODERN_HEAD, url=url, final=url), None, now=NOW, mobile={"device_width": 390, "viewport_width": 424, "page_width": 424, "h_scroll": 34, "small_text_share": 0.0})
+    assert r.details["checks"]["mobile_overflow"] == 6
