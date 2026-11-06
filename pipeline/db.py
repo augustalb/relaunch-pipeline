@@ -233,6 +233,16 @@ class SendCounter(Base):
     count: Mapped[int] = mapped_column(Integer, default=0)
 
 
+class SearchLog(Base):
+    """Places text searches that were fully processed, so later runs do not pay for the same query again."""
+
+    __tablename__ = "search_log"
+
+    query: Mapped[str] = mapped_column(String(255), primary_key=True)
+    searched_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+    results: Mapped[int] = mapped_column(Integer, default=0)
+
+
 # ----------------------------------------------------------------- engine/session
 _engine = None
 _SessionLocal: sessionmaker | None = None

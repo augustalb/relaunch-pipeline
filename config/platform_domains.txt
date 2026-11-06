@@ -34,3 +34,9 @@ google.com
 goo.gl
 maps.app.goo.gl
 business.site
+# Hosting-Subdomains ohne eigene Domain (meist Baustellen, Testseiten oder Login-geschützt)
+workers.dev
+pages.dev
+netlify.app
+vercel.app
+github.io

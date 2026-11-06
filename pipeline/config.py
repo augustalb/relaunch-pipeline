@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     PLACES_MAX_REQUESTS_PER_RUN: int = 60
     PLACES_PAGES_PER_QUERY: int = 3
     PLACES_CACHE_DAYS: int = 30  # Google Maps Platform ToS: cache most content <= 30 days
+    PLACES_RESEARCH_DAYS: int = 30  # a fully processed search query is repeated at the earliest after N days
     CHAIN_MIN_LOCATIONS: int = 3  # same domain at >= N places -> treated as chain
 
     # ------------------------------------------------------------------ scoring

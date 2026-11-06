@@ -48,7 +48,7 @@ SYSTEM = (
 METRICS_JS = """() => {
   const vw = window.innerWidth;
   const sw = Math.max(document.documentElement.scrollWidth, document.body ? document.body.scrollWidth : 0);
-  const scale = 390 / vw;  // pages without a viewport tag are laid out at ~980 px and shrunk
+  const scale = 1;  // measured in a 390 px window without mobile shrink-to-fit
   let total = 0, small = 0;
   if (document.body) {
     const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
@@ -63,7 +63,19 @@ METRICS_JS = """() => {
       if (px < 12) small += text.length;
     }
   }
-  return {device_width: 390, viewport_width: vw, page_width: sw, small_text_share: total ? small / total : 0};
+  // Can the visitor actually scroll sideways? (Hidden off-canvas menus widen scrollWidth but are not scrollable.)
+  const x0 = window.scrollX;
+  window.scrollTo(100000, window.scrollY);
+  let hScroll = Math.max(0, Math.round(window.scrollX - x0));
+  // overflow-x hidden/clip on the root (or body, which propagates to the viewport) blocks user scrolling,
+  // even though scripts can still scroll programmatically.
+  const rootOx = getComputedStyle(document.documentElement).overflowX;
+  const bodyOx = document.body ? getComputedStyle(document.body).overflowX : 'visible';
+  const viewportOx = rootOx !== 'visible' ? rootOx : bodyOx;
+  if (viewportOx === 'hidden' || viewportOx === 'clip') hScroll = 0;
+  window.scrollTo(x0, window.scrollY);
+  const hasViewportMeta = !!document.querySelector('meta[name="viewport" i]');
+  return {device_width: 390, viewport_width: vw, page_width: sw, h_scroll: hScroll, has_viewport_meta: hasViewportMeta, small_text_share: total ? small / total : 0};
 }"""
 
 
@@ -74,9 +86,10 @@ class Capture:
     viewport_width: int
     page_width: int
     small_text_share: float
+    h_scroll: int = 0
 
     def metrics(self) -> dict:
-        return {"device_width": self.device_width, "viewport_width": self.viewport_width, "page_width": self.page_width, "small_text_share": round(self.small_text_share, 3)}
+        return {"device_width": self.device_width, "viewport_width": self.viewport_width, "page_width": self.page_width, "h_scroll": self.h_scroll, "small_text_share": round(self.small_text_share, 3)}
 
 
 class Screenshotter(Protocol):
@@ -130,13 +143,36 @@ class PlaywrightScreenshotter:
             page = ctx.new_page()
             page.goto(url, wait_until="load", timeout=s.HTTP_TIMEOUT_SECONDS * 1000)
             page.wait_for_timeout(800)
-            m = page.evaluate(METRICS_JS)
+            mobile_layout = int(page.evaluate("window.innerWidth") or VIEWPORT["width"])
             height = min(CAPTURE_HEIGHT, int(page.evaluate("document.documentElement.scrollHeight") or VIEWPORT["height"]))
             jpeg = page.screenshot(type="jpeg", quality=70, full_page=True, clip={"x": 0, "y": 0, "width": VIEWPORT["width"], "height": max(height, 400)})
-            return Capture(jpeg, int(m["device_width"]), int(m["viewport_width"]), int(m["page_width"]), float(m["small_text_share"]))
         except Exception as e:  # noqa: BLE001
             log.warning("screenshot failed", url=url, err=str(e)[:200])
             return None
+        finally:
+            ctx.close()
+        # Mobile emulation zooms out whenever anything is wider than the screen, even hidden off-canvas menus.
+        # A plain 390 px window shows what a visitor can actually scroll to and how big the text really is.
+        m, narrow_jpeg = self._measure_narrow(url)
+        m = m or {"page_width": 0, "h_scroll": 0, "small_text_share": 0.0, "has_viewport_meta": False}
+        if mobile_layout > VIEWPORT["width"] + 16 and m.get("has_viewport_meta") and not m.get("h_scroll") and narrow_jpeg:
+            jpeg = narrow_jpeg  # emulation zoomed out only because of hidden overflow: show the page as visitors see it
+        return Capture(jpeg, VIEWPORT["width"], mobile_layout, int(m["page_width"]), float(m["small_text_share"]), int(m.get("h_scroll") or 0))
+
+    def _measure_narrow(self, url: str) -> tuple[dict | None, bytes | None]:
+        s = get_settings()
+        ctx = self._browser.new_context(viewport=VIEWPORT, device_scale_factor=1, is_mobile=False)
+        try:
+            page = ctx.new_page()
+            page.goto(url, wait_until="load", timeout=s.HTTP_TIMEOUT_SECONDS * 1000)
+            page.wait_for_timeout(500)
+            m = page.evaluate(METRICS_JS)
+            height = min(CAPTURE_HEIGHT, int(page.evaluate("document.documentElement.scrollHeight") or VIEWPORT["height"]))
+            jpeg = page.screenshot(type="jpeg", quality=70, full_page=True, clip={"x": 0, "y": 0, "width": VIEWPORT["width"], "height": max(height, 400)})
+            return m, jpeg
+        except Exception as e:  # noqa: BLE001
+            log.warning("narrow measurement failed", url=url, err=str(e)[:200])
+            return None, None
         finally:
             ctx.close()
 
