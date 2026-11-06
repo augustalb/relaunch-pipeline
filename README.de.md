@@ -20,6 +20,8 @@ pipeline review        # Review-UI auf http://127.0.0.1:8787
 pipeline doctor        # welche Keys/Tools fehlen, was degradiert
 ```
 
+**Aktueller Stand** (Konten, Domains, Postfächer, offene Punkte): [docs/STATUS.md](docs/STATUS.md).
+
 Ergebnisse des Demo-Laufs: `docs/demo/` (3 Vorher/Nachher-Screenshots, 3 fertige Mail-Sequenzen).
 
 ---
