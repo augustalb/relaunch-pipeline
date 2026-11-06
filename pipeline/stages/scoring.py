@@ -203,11 +203,11 @@ def analyze_html(res: FetchResult, psi: PageSpeedResult | None, *, internal_chec
     if mobile:
         details["mobile"] = mobile
         has_no_viewport = any(x.key == "no_viewport" for x in f)
-        # Mobile browsers either zoom out (layout viewport grows) or scroll sideways; both mean the page is wider than the phone.
+        # h_scroll is measured in a plain 390 px window: how far a visitor can really move the page sideways.
         dw = mobile.get("device_width") or 390
-        width = max(mobile.get("viewport_width") or 0, mobile.get("page_width") or 0)
-        if not has_no_viewport and width > dw + 16:
-            f.append(Finding("mobile_overflow", 18, f"Auf dem Smartphone passt Ihre Startseite nicht auf den Bildschirm: Sie ist {width} Pixel breit statt {dw} Pixel, der Browser verkleinert sie oder Besucher müssen seitlich scrollen.", str(width)))
+        h_scroll = mobile.get("h_scroll") or 0
+        if not has_no_viewport and h_scroll > 16:
+            f.append(Finding("mobile_overflow", 18, f"Auf dem Smartphone lässt sich Ihre Startseite um {h_scroll} Pixel seitlich verschieben, weil Inhalte über den Bildschirmrand ragen.", str(h_scroll)))
         share = mobile.get("small_text_share") or 0
         if not has_no_viewport and share >= 0.3:
             f.append(Finding("small_text", 8, f"Rund {int(round(share * 100))} % des Textes auf Ihrer Startseite erscheint auf dem Smartphone kleiner als 12 Pixel.", str(int(round(share * 100)))))

@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from collections import Counter
+from datetime import timedelta
 
 from sqlalchemy import select
 
 from ..config import get_settings
 from ..costs import BudgetExceeded, CostTracker
-from ..db import Lead, LeadStatus, session_scope, utcnow
+from ..db import Lead, LeadStatus, SearchLog, session_scope, utcnow
 from ..industry import load_industry
 from ..log import get_logger
 from ..services import blocklist as bl
@@ -55,6 +56,10 @@ def run(limit: int | None = None, cities: list[str] | None = None, costs: CostTr
         for city in cities:
             for term in industry.search_terms:
                 query = term.format(city=city)
+                logged = session.get(SearchLog, query)
+                if logged is not None and _aware(logged.searched_at) > utcnow() - timedelta(days=s.PLACES_RESEARCH_DAYS):
+                    stats["skipped_recent_query"] += 1
+                    continue
                 try:
                     places = list(client.search(query, s.PLACES_PAGES_PER_QUERY))
                 except BudgetExceeded as e:
@@ -103,9 +108,23 @@ def run(limit: int | None = None, cities: list[str] | None = None, costs: CostTr
                         stats["blocked"] += 1
                     else:
                         new_leads += 1
-                    if limit and new_leads >= limit:
-                        return _finish(stats, new_leads)
+                    if limit and new_leads >= limit and p is not places[-1]:
+                        return _finish(stats, new_leads)  # query not fully processed -> repeat next run
+                # every result of this query was handled: remember it
+                if logged is None:
+                    session.add(SearchLog(query=query, searched_at=utcnow(), results=len(places)))
+                else:
+                    logged.searched_at, logged.results = utcnow(), len(places)
+                session.flush()
+                if limit and new_leads >= limit:
+                    return _finish(stats, new_leads)
     return _finish(stats, new_leads)
+
+
+def _aware(dt):
+    from datetime import timezone
+
+    return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
 
 
 def _disqualify_domain(session, domain: str, reason: str) -> None:

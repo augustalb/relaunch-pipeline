@@ -99,16 +99,23 @@ MODERN_HEAD = """<!doctype html><html lang="de"><head><meta charset="utf-8"><tit
 
 def test_wide_page_with_viewport_is_flagged_as_fact():
     url = "https://a.de/"
-    r = analyze_html(_res(MODERN_HEAD, url=url, final=url), None, now=NOW, mobile={"device_width": 390, "viewport_width": 961, "page_width": 961, "small_text_share": 1.0})
+    r = analyze_html(_res(MODERN_HEAD, url=url, final=url), None, now=NOW, mobile={"device_width": 390, "viewport_width": 961, "page_width": 961, "h_scroll": 571, "small_text_share": 1.0})
     assert r.details["checks"]["mobile_overflow"] == 18
     assert r.details["checks"]["small_text"] == 8
-    assert any("961 Pixel breit statt 390" in f for f in r.top_findings())
+    assert any("571 Pixel seitlich" in f for f in r.top_findings())
 
 
 def test_fitting_page_not_flagged():
     url = "https://a.de/"
-    r = analyze_html(_res(MODERN_HEAD, url=url, final=url), None, now=NOW, mobile={"device_width": 390, "viewport_width": 390, "page_width": 400, "small_text_share": 0.05})
-    assert "mobile_overflow" not in r.details["checks"] and "small_text" not in r.details["checks"]
+    r = analyze_html(_res(MODERN_HEAD, url=url, final=url), None, now=NOW, mobile={"device_width": 390, "viewport_width": 390, "page_width": 900, "h_scroll": 0, "small_text_share": 0.05})
+    assert "mobile_overflow" not in r.details["checks"] and "small_text" not in r.details["checks"]  # hidden off-canvas menu, not scrollable
+
+
+def test_real_sideways_scroll_flagged():
+    url = "https://a.de/"
+    r = analyze_html(_res(MODERN_HEAD, url=url, final=url), None, now=NOW, mobile={"device_width": 390, "viewport_width": 390, "page_width": 620, "h_scroll": 230, "small_text_share": 0.0})
+    assert r.details["checks"]["mobile_overflow"] == 18
+    assert any("230 Pixel seitlich" in f for f in r.top_findings())
 
 
 def test_no_double_count_without_viewport():
