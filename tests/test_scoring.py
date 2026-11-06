@@ -130,3 +130,8 @@ def test_small_overflow_counts_less():
     url = "https://a.de/"
     r = analyze_html(_res(MODERN_HEAD, url=url, final=url), None, now=NOW, mobile={"device_width": 390, "viewport_width": 424, "page_width": 424, "h_scroll": 34, "small_text_share": 0.0})
     assert r.details["checks"]["mobile_overflow"] == 6
+
+
+def test_findings_use_german_decimal_comma():
+    r = analyze_html(_res("<html><body>x</body></html>"), PageSpeedResult(performance=0.9, lcp_ms=1000, cls=0.61), now=NOW)
+    assert any("Layout-Shift 0,61" in f.text for f in r.findings)
