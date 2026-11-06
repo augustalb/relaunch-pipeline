@@ -58,7 +58,7 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------ scoring
     PAGESPEED_API_KEY: str = ""
     PAGESPEED_MAX_REQUESTS_PER_RUN: int = 100
-    SCORE_THRESHOLD: int = 55  # >= threshold -> qualified
+    SCORE_THRESHOLD: int = 32  # >= threshold -> qualified (calibrated 06.11.2026 on 45 Köln sites, see DECISIONS 19)
     HTTP_TIMEOUT_SECONDS: float = 20.0
     USER_AGENT: str = "Mozilla/5.0 (compatible; RelaunchPipeline/0.1; +https://example.de/bot)"
 
