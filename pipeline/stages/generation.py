@@ -21,7 +21,7 @@ from ..costs import BudgetExceeded, CostTracker
 from ..db import Lead, LeadStatus, leads_in_status, session_scope
 from ..industry import Industry, load_industry
 from ..log import get_logger
-from ..schema import Contact, HoursBlock, ImageRef, PriceItem, ServiceItem, SiteContent, Sourced, TeamMember, json_schema_for_llm
+from ..schema import Contact, HoursBlock, ImageRef, PriceItem, ServiceItem, SiteContent, Sourced, TeamMember, json_schema_for_llm, normalize_llm_output
 from ..services.llm import LLM, make_llm
 from ..validator import validate_content
 from ..util import collapse_ws
@@ -147,7 +147,7 @@ Unverhandelbare Regeln:
    Klassen, Telefonnummern, Bewertungen, Auszeichnungen, Erfolgsquoten, Zitate oder Gründungsjahre.
 2. Jedes Faktenfeld (Sourced) trägt die Quell-URL und das exakte Quell-Snippet. Werte wörtlich übernehmen
    (Preise wie geschrieben, Zeiten wie geschrieben).
-3. Fehlt eine Information, bleibt das Feld null bzw. die Liste leer. Die Sektion wird dann ausgeblendet.
+3. Fehlt eine Information, schreibe einen leeren Text "" (bei Fakten: value, source und snippet jeweils "") bzw. lass die Liste leer. Erfinde nie einen Platzhalter. Die Sektion wird dann ausgeblendet.
 4. Werbetexte (tagline, hero_text, about, highlights, description) dürfen umformuliert werden, aber ohne neue
    Behauptungen, ohne Zahlen, die nicht in den Quellen stehen, ohne Superlative. Sie-Form, freundlich, klar, deutsch.
 5. images: nur URLs aus der Kandidatenliste.
@@ -179,7 +179,7 @@ def generate_with_llm(llm: LLM, extracted: dict, industry: Industry, company_nam
         raw["industry"] = industry.name
         raw.pop("hero_image", None)
         try:
-            content = SiteContent.model_validate(raw)
+            content = SiteContent.model_validate(normalize_llm_output(raw))
         except ValidationError as e:
             last_error = str(e)[:800]
             log.warning("llm output failed schema", attempt=attempt, err=last_error[:200])

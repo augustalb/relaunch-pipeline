@@ -9,7 +9,8 @@ that is enforced by `pipeline.validator`.
 
 from __future__ import annotations
 
-from typing import Literal
+import types
+from typing import Literal, Union, get_args, get_origin
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -111,9 +112,12 @@ def json_schema_for_llm() -> dict:
     schema["properties"].pop("hero_image", None)
     if "hero_image" in schema.get("required", []):
         schema["required"].remove("hero_image")
-    # Structured outputs reject length/size/number constraints and defaults (400 Bad Request).
-    # They stay enforced: the response is validated against SiteContent afterwards.
-    return _strip_unsupported(schema)
+    # Structured outputs reject length/size/number constraints and defaults (400 Bad Request) and
+    # schemas with many optional or nullable fields ("Schema is too complex"). So the LLM gets a
+    # schema where every field is required and never null; "missing" is "" or an empty list.
+    # normalize_llm_output() turns those back into None before validating against SiteContent,
+    # which still enforces every constraint.
+    return _all_required(_strip_unsupported(schema))
 
 
 _UNSUPPORTED_KEYS = {
@@ -131,3 +135,62 @@ def _strip_unsupported(node):
     if isinstance(node, list):
         return [_strip_unsupported(v) for v in node]
     return node
+
+
+def _all_required(node):
+    if isinstance(node, dict):
+        if "anyOf" in node:
+            options = [o for o in node["anyOf"] if o.get("type") != "null"]
+            if len(options) == 1:
+                merged = {k: v for k, v in node.items() if k != "anyOf"}
+                merged.update(options[0])
+                return _all_required(merged)
+        out = {k: _all_required(v) for k, v in node.items()}
+        if out.get("type") == "object" and "properties" in out:
+            out["required"] = list(out["properties"].keys())
+        return out
+    if isinstance(node, list):
+        return [_all_required(v) for v in node]
+    return node
+
+
+def _unwrap(annotation):
+    """Return (inner_type, nullable) for `X | None` / Optional[X]."""
+    if get_origin(annotation) in (Union, types.UnionType):
+        args = [a for a in get_args(annotation) if a is not type(None)]
+        if len(args) == 1:
+            return args[0], True
+    return annotation, False
+
+
+def _is_empty(value) -> bool:
+    return value == "" or (isinstance(value, dict) and value.get("value", None) == "")
+
+
+def _normalize(model: type[BaseModel], data):
+    if not isinstance(data, dict):
+        return data
+    for name, field in model.model_fields.items():
+        if name not in data:
+            continue
+        inner, nullable = _unwrap(field.annotation)
+        value = data[name]
+        if nullable and _is_empty(value):
+            data[name] = None
+            continue
+        if isinstance(inner, type) and issubclass(inner, BaseModel):
+            data[name] = _normalize(inner, value)
+        elif get_origin(inner) is list and isinstance(value, list):
+            (item_type,) = get_args(inner) or (None,)
+            items = [v for v in value if not _is_empty(v)]  # drop empty facts the LLM used as placeholders
+            if isinstance(item_type, type) and issubclass(item_type, BaseModel):
+                items = [_normalize(item_type, v) for v in items]
+            data[name] = items
+    if model is Sourced and data.get("snippet") == "":
+        data["snippet"] = None
+    return data
+
+
+def normalize_llm_output(raw: dict) -> dict:
+    """Map the LLM's "" / empty placeholders back to None so SiteContent can validate them."""
+    return _normalize(SiteContent, dict(raw))
