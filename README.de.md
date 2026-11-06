@@ -101,8 +101,8 @@ Alle Variablen mit Erklärung: **`.env.example`**. Lokal nach `.env` kopieren.
 
 1. Repo → **Settings → Secrets and variables → Actions**.
 2. **Secrets:** `DATABASE_URL`, `GOOGLE_PLACES_API_KEY`, `PAGESPEED_API_KEY`, `ANTHROPIC_API_KEY`, `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `INSTANTLY_API_KEY`, `INSTANTLY_CAMPAIGN_ID`, optional `MILLIONVERIFIER_API_KEY`, `RESEND_API_KEY`.
-3. **Variables** (nicht geheim): `SENDER_NAME`, `SENDER_TITLE`, `SENDER_ADDRESS`, `SENDER_PHONE`, `PREVIEW_DOMAIN`, `SENDER_BACKEND` (`dryrun` → später `instantly`), `AUTO_APPROVE` (`false`), `REPORT_EMAIL_TO`, `REPORT_EMAIL_FROM`, optional `DAILY_SEND_LIMIT_START`/`_MAX`.
-4. Workflow `.github/workflows/relaunch-pipeline.yml` läuft Mo–Fr 07:40 und 12:40 UTC. Manuell: Actions → relaunch-pipeline → „Run workflow“ mit Stufe und Limit.
+3. **Variables** (nicht geheim): `SENDER_NAME`, `SENDER_TITLE`, `SENDER_ADDRESS`, `SENDER_PHONE`, `PREVIEW_DOMAIN`, `BRAND_NAME`, `SENDER_BACKEND` (`dryrun` → später `instantly`), `PIPELINE_ENABLED` (`false` → nach erfolgreichem Test `true`), `AUTO_APPROVE` (`false`), `REPORT_EMAIL_TO`, `REPORT_EMAIL_FROM`, optional `DAILY_SEND_LIMIT_START`/`_MAX`.
+4. Workflow `.github/workflows/relaunch-pipeline.yml` läuft Mo–Fr 07:40 und 12:40 UTC, **aber erst, wenn die Variable `PIPELINE_ENABLED` auf `true` steht** (Schutz vor Kosten vor dem ersten Test). Manuell: Actions → relaunch-pipeline → „Run workflow“ mit Stufe und Limit.
 5. Ergebnisse: Job-Summary (Kurzbericht), Artefakte (Screenshots, Outbox, `run-summary.json`), Logs als JSON-Zeilen.
 6. Review bleibt lokal: `git pull` ist nicht nötig, die Review-UI spricht direkt mit der Supabase-DB (`DATABASE_URL` in deiner lokalen `.env`). Screenshots für die UI holst du dir aus dem Actions-Artefakt in `screenshots/` oder lässt `pipeline run --stage screenshots` lokal laufen.
 
