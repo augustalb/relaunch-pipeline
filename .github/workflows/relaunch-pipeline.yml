@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       stage:
-        description: "Stufe (all | discovery | scoring | contact | extraction | generation | preview | screenshots | sending | sync | housekeeping | report)"
+        description: "Stufe (doctor = nur Schlüssel prüfen | all | discovery | scoring | contact | extraction | generation | preview | screenshots | sending | sync | housekeeping | report)"
         default: "all"
       limit:
         description: "Max. Leads pro Stufe (leer = Config)"
@@ -79,10 +79,11 @@ jobs:
         run: npm ci --no-audit --no-fund
         working-directory: site
 
-      - name: Doctor
-        run: pipeline doctor
+      - name: Doctor (live credential checks, free)
+        run: pipeline doctor --live
 
       - name: Run pipeline
+        if: github.event.inputs.stage != 'doctor'
         run: |
           ARGS="--stage ${{ github.event.inputs.stage || 'all' }}"
           if [ -n "${{ github.event.inputs.limit }}" ]; then ARGS="$ARGS --limit ${{ github.event.inputs.limit }}"; fi
