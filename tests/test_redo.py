@@ -16,5 +16,5 @@ def test_reset_pending_moves_back_to_qualified():
         b = s.scalars(select(Lead).where(Lead.place_id == "p2")).one()
         assert a.status == LeadStatus.QUALIFIED.value
         assert a.owner_name is None and a.generated is None and a.email_body is None
-        assert a.preview_path == "fs-abc123"  # link stays stable
+        assert a.preview_path is None  # rebuilt from the corrected name; never sent, so never shared
         assert b.status == LeadStatus.SENT.value and b.email_body == "gesendet"
