@@ -74,7 +74,7 @@ def _copyright_year(text: str) -> int | None:
     return max(years) if years else None
 
 
-def analyze_html(res: FetchResult, psi: PageSpeedResult | None, *, internal_checks: list[int] | None = None, now: datetime | None = None, industry_scoring: dict | None = None, visual: dict | None = None) -> ScoreResult:
+def analyze_html(res: FetchResult, psi: PageSpeedResult | None, *, internal_checks: list[int] | None = None, now: datetime | None = None, industry_scoring: dict | None = None, visual: dict | None = None, mobile: dict | None = None) -> ScoreResult:
     """Pure function: turn a fetched home page (+ PSI) into a score and findings."""
     now = now or utcnow()
     f: list[Finding] = []
@@ -199,6 +199,19 @@ def analyze_html(res: FetchResult, psi: PageSpeedResult | None, *, internal_chec
     if ind.get("missing_services_page") and not re.search(r"klasse|führerschein|fuehrerschein", text, re.I):
         f.append(Finding("no_services", int(ind["missing_services_page"]), "Auf Ihrer Startseite ist nicht erkennbar, welche Führerscheinklassen Sie ausbilden."))
 
+    # --- measured mobile rendering (browser metrics, factual)
+    if mobile:
+        details["mobile"] = mobile
+        has_no_viewport = any(x.key == "no_viewport" for x in f)
+        # Mobile browsers either zoom out (layout viewport grows) or scroll sideways; both mean the page is wider than the phone.
+        dw = mobile.get("device_width") or 390
+        width = max(mobile.get("viewport_width") or 0, mobile.get("page_width") or 0)
+        if not has_no_viewport and width > dw + 16:
+            f.append(Finding("mobile_overflow", 18, f"Auf dem Smartphone passt Ihre Startseite nicht auf den Bildschirm: Sie ist {width} Pixel breit statt {dw} Pixel, der Browser verkleinert sie oder Besucher müssen seitlich scrollen.", str(width)))
+        share = mobile.get("small_text_share") or 0
+        if not has_no_viewport and share >= 0.3:
+            f.append(Finding("small_text", 8, f"Rund {int(round(share * 100))} % des Textes auf Ihrer Startseite erscheint auf dem Smartphone kleiner als 12 Pixel.", str(int(round(share * 100)))))
+
     # --- visual first impression (LLM opinion on the mobile screenshot; internal only)
     if visual:
         details["visual"] = visual
@@ -255,16 +268,19 @@ def score_url(
             log.warning(str(e))
         except Exception as e:
             log.warning("pagespeed failed", url=url, err=str(e))
-    visual = None
-    if res.ok and screenshotter is not None and rater is not None:
+    visual = mobile = None
+    if res.ok and screenshotter is not None:
         try:
             shot = screenshotter.capture(res.final_url)
-            visual = rater.rate(shot) if shot else None
+            if shot is not None:
+                mobile = shot.metrics()
+                if rater is not None:
+                    visual = rater.rate(shot.jpeg)
         except BudgetExceeded as e:
             log.warning(str(e))
         except Exception as e:  # noqa: BLE001 - visual check is optional
             log.warning("visual check failed", url=url, err=str(e)[:200])
-    return analyze_html(res, psi, internal_checks=internal, industry_scoring=industry_scoring, visual=visual), res
+    return analyze_html(res, psi, internal_checks=internal, industry_scoring=industry_scoring, visual=visual, mobile=mobile), res
 
 
 def run(
@@ -276,7 +292,7 @@ def run(
 ) -> dict:
     costs = costs or CostTracker()
     rater = rater if rater is not None else make_visual_rater(costs)
-    if rater is not None and screenshotter is None:
+    if screenshotter is None and get_settings().VISUAL_CHECK:
         with PlaywrightScreenshotter() as shooter:
             return _run(limit, costs, psi_client, rater, shooter)
     return _run(limit, costs, psi_client, rater, screenshotter)
@@ -290,40 +306,48 @@ def _run(limit, costs, psi_client, rater, screenshotter) -> dict:
     with session_scope() as session:
         leads = leads_in_status(session, LeadStatus.DISCOVERED, limit, industry.name)
     for lead_id in [l.id for l in leads]:
-        with session_scope() as session:
-            lead = session.get(Lead, lead_id)
-            try:
-                result, res = score_url(lead.website, lead.domain, psi_client, industry.scoring, screenshotter, rater)
-            except Exception as e:
-                stats["errors"] += 1
-                log.error("scoring failed", lead=lead_id, err=str(e))
-                continue
-            lead.score = result.score
-            lead.score_details = result.details
-            lead.findings = result.top_findings(3)
-            lead.scored_at = utcnow()
-            if res.ok and res.final_url:
-                lead.website = res.final_url
-            lead.transition(LeadStatus.SCORED, f"score={result.score}", session)
-            stats["scored"] += 1
-            if not res.ok:
-                lead.transition(LeadStatus.DISQUALIFIED, "Website nicht erreichbar", session)
-                stats["disqualified"] += 1
-            elif result.score >= s.SCORE_THRESHOLD:
-                lead.transition(LeadStatus.QUALIFIED, None, session)
-                stats["qualified"] += 1
-            else:
-                lead.transition(LeadStatus.DISQUALIFIED, f"Score {result.score} < {s.SCORE_THRESHOLD}", session)
-                stats["disqualified"] += 1
-            log.info(
-                "scored",
-                lead=lead_id,
-                domain=lead.domain,
-                score=result.score,
-                checks=result.details.get("checks"),
-                visual=(result.details.get("visual") or {}).get("outdated"),
-                visual_usability=(result.details.get("visual") or {}).get("mobile_usability"),
-                visual_reasons=(result.details.get("visual") or {}).get("reasons"),
-            )
+        try:
+            _score_one(lead_id, s, industry, psi_client, screenshotter, rater, stats)
+        except Exception as e:  # noqa: BLE001 - one broken site must not stop the stage
+            stats["errors"] += 1
+            log.error("scoring failed", lead=lead_id, err=str(e)[:300])
     log.info("scoring done", **stats)
     return stats
+
+
+def _score_one(lead_id, s, industry, psi_client, screenshotter, rater, stats) -> None:
+    with session_scope() as session:
+        lead = session.get(Lead, lead_id)
+        try:
+            result, res = score_url(lead.website, lead.domain, psi_client, industry.scoring, screenshotter, rater)
+        except Exception as e:
+            stats["errors"] += 1
+            log.error("scoring failed", lead=lead_id, err=str(e))
+            return
+        lead.score = result.score
+        lead.score_details = result.details
+        lead.findings = result.top_findings(3)
+        lead.scored_at = utcnow()
+        if res.ok and res.final_url and len(res.final_url) <= 1000 and same_site(res.final_url, lead.domain or ""):
+            lead.website = res.final_url
+        lead.transition(LeadStatus.SCORED, f"score={result.score}", session)
+        stats["scored"] += 1
+        if not res.ok:
+            lead.transition(LeadStatus.DISQUALIFIED, "Website nicht erreichbar", session)
+            stats["disqualified"] += 1
+        elif result.score >= s.SCORE_THRESHOLD:
+            lead.transition(LeadStatus.QUALIFIED, None, session)
+            stats["qualified"] += 1
+        else:
+            lead.transition(LeadStatus.DISQUALIFIED, f"Score {result.score} < {s.SCORE_THRESHOLD}", session)
+            stats["disqualified"] += 1
+        log.info(
+            "scored",
+            lead=lead_id,
+            domain=lead.domain,
+            score=result.score,
+            checks=result.details.get("checks"),
+            visual=(result.details.get("visual") or {}).get("outdated"),
+            visual_usability=(result.details.get("visual") or {}).get("mobile_usability"),
+            visual_reasons=(result.details.get("visual") or {}).get("reasons"),
+        )

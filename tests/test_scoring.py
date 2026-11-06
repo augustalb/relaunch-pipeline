@@ -89,3 +89,30 @@ def test_score_never_negative():
     <meta name="viewport" content="width=device-width"><link rel="icon" href="/f.svg"></head><body><h1>Klasse B</h1><footer>&copy; 2026</footer></body></html>"""
     r = analyze_html(_res(html, url="https://a.de/", final="https://a.de/"), PageSpeedResult(performance=0.99, lcp_ms=900, cls=0.0), now=NOW, visual={"outdated": 1, "mobile_usability": 10, "reasons": []})
     assert r.score == 0
+
+
+# --- measured mobile metrics -----------------------------------------------------
+
+MODERN_HEAD = """<!doctype html><html lang="de"><head><meta charset="utf-8"><title>T</title><meta name="description" content="x">
+<meta name="viewport" content="width=device-width"><link rel="icon" href="/f.svg"></head><body><h1>Klasse B</h1><footer>&copy; 2026</footer></body></html>"""
+
+
+def test_wide_page_with_viewport_is_flagged_as_fact():
+    url = "https://a.de/"
+    r = analyze_html(_res(MODERN_HEAD, url=url, final=url), None, now=NOW, mobile={"device_width": 390, "viewport_width": 961, "page_width": 961, "small_text_share": 1.0})
+    assert r.details["checks"]["mobile_overflow"] == 18
+    assert r.details["checks"]["small_text"] == 8
+    assert any("961 Pixel breit statt 390" in f for f in r.top_findings())
+
+
+def test_fitting_page_not_flagged():
+    url = "https://a.de/"
+    r = analyze_html(_res(MODERN_HEAD, url=url, final=url), None, now=NOW, mobile={"device_width": 390, "viewport_width": 390, "page_width": 400, "small_text_share": 0.05})
+    assert "mobile_overflow" not in r.details["checks"] and "small_text" not in r.details["checks"]
+
+
+def test_no_double_count_without_viewport():
+    html = "<html><body><table><tr><td>Fahrschule Klasse B</td></tr></table></body></html>"
+    r = analyze_html(_res(html), None, now=NOW, mobile={"device_width": 390, "viewport_width": 980, "page_width": 980, "small_text_share": 0.9})
+    assert "no_viewport" in r.details["checks"]
+    assert "mobile_overflow" not in r.details["checks"] and "small_text" not in r.details["checks"]
