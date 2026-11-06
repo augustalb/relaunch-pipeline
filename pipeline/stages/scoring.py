@@ -315,6 +315,15 @@ def _run(limit, costs, psi_client, rater, screenshotter) -> dict:
             else:
                 lead.transition(LeadStatus.DISQUALIFIED, f"Score {result.score} < {s.SCORE_THRESHOLD}", session)
                 stats["disqualified"] += 1
-            log.info("scored", lead=lead_id, domain=lead.domain, score=result.score)
+            log.info(
+                "scored",
+                lead=lead_id,
+                domain=lead.domain,
+                score=result.score,
+                checks=result.details.get("checks"),
+                visual=(result.details.get("visual") or {}).get("outdated"),
+                visual_usability=(result.details.get("visual") or {}).get("mobile_usability"),
+                visual_reasons=(result.details.get("visual") or {}).get("reasons"),
+            )
     log.info("scoring done", **stats)
     return stats
