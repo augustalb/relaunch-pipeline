@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       stage:
-        description: "Stufe (doctor = nur Schlüssel prüfen | all | discovery | scoring | contact | extraction | generation | preview | screenshots | sending | sync | housekeeping | report)"
+        description: "Stufe (doctor = nur Schlüssel prüfen | redo_review = Entwürfe im Review neu erzeugen | all | discovery | scoring | contact | extraction | generation | preview | screenshots | sending | sync | housekeeping | report)"
         default: "all"
       limit:
         description: "Max. Leads pro Stufe (leer = Config)"

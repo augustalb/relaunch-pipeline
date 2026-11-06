@@ -109,4 +109,25 @@ def json_schema_for_llm() -> dict:
     schema = SiteContent.model_json_schema()
     # The pipeline fills hero_image itself.
     schema["properties"].pop("hero_image", None)
-    return schema
+    if "hero_image" in schema.get("required", []):
+        schema["required"].remove("hero_image")
+    # Structured outputs reject length/size/number constraints and defaults (400 Bad Request).
+    # They stay enforced: the response is validated against SiteContent afterwards.
+    return _strip_unsupported(schema)
+
+
+_UNSUPPORTED_KEYS = {
+    "minLength", "maxLength", "pattern", "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum",
+    "multipleOf", "minItems", "maxItems", "uniqueItems", "default",
+}
+
+
+def _strip_unsupported(node):
+    if isinstance(node, dict):
+        out = {k: _strip_unsupported(v) for k, v in node.items() if k not in _UNSUPPORTED_KEYS}
+        if out.get("type") == "object":
+            out["additionalProperties"] = False
+        return out
+    if isinstance(node, list):
+        return [_strip_unsupported(v) for v in node]
+    return node

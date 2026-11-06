@@ -40,6 +40,11 @@ def test_owner_and_salutation():
     assert extract_owner("Geschäftsführer: Thomas Berger\n") == ("Thomas Berger", "Sehr geehrter Herr Berger")
     assert extract_owner("Vertreten durch: Kim Lee\n") == ("Kim Lee", None)
     assert extract_owner("Angaben gemäß § 5 TMG\nFahrschule Müller GmbH\n") == (None, None)
+    # boilerplate picked up after a label must not become an owner name (real run, 06.11.2026)
+    assert extract_owner("Verantwortlich für den Inhalt: Weitere Informationen\n") == (None, None)
+    assert extract_owner("Ansprechpartner: Ihre Dienste\n") == (None, None)
+    assert extract_owner("Verantwortliche Stelle\nVerantwortlich: Verantwortliche Stelle\n") == (None, None)
+    assert extract_owner("Inhaber: Jan Tönnessen\n") == ("Jan Tönnessen", "Sehr geehrter Herr Tönnessen")
 
 
 def test_company_name_from_imprint():

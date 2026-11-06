@@ -40,7 +40,7 @@ def test_ok_and_error_responses(monkeypatch):
         if host == "www.googleapis.com":
             return httpx.Response(200, json={"lighthouseResult": {"categories": {"performance": {"score": 0.97}}}})
         if host == "api.anthropic.com":
-            return httpx.Response(401, json={"error": {"message": "invalid x-api-key"}})
+            return httpx.Response(401, json={"error": {"message": "invalid x-api-key"}})  # stops before the schema check
         if host == "api.cloudflare.com":
             return httpx.Response(200, json={"success": True, "result": [{"name": "relaunch-previews"}]})
         raise AssertionError(host)
@@ -52,3 +52,21 @@ def test_ok_and_error_responses(monkeypatch):
     assert by["Cloudflare"].status == "ok" and "vorhanden" in by["Cloudflare"].detail
     for r in by.values():
         assert "k1" not in r.detail and "k3" not in r.detail and "k4" not in r.detail
+
+
+def test_anthropic_schema_check(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "k3")
+    reset_settings_cache()
+    seen = []
+
+    def handler(request):
+        seen.append(request.url.path)
+        if request.url.path == "/v1/models":
+            return httpx.Response(200, json={"data": [{"id": "claude-haiku-5-5"}]})
+        body = __import__("json").loads(request.content)
+        assert body["output_config"]["format"]["type"] == "json_schema"
+        return httpx.Response(400, json={"error": {"message": "maxLength not supported"}})
+
+    r = livecheck.check_anthropic(_client(handler))
+    assert seen == ["/v1/models", "/v1/messages"]
+    assert r.failed and "Schema abgelehnt" in r.detail

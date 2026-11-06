@@ -205,7 +205,7 @@ class VisualRater:
                 output_config={"effort": "low", "format": {"type": "json_schema", "schema": RATING_SCHEMA}},
             )
         except anthropic.APIStatusError as e:
-            log.warning("visual rating failed", status=e.status_code, msg=str(e)[:200])
+            log.warning("visual rating failed", status=e.status_code, err=str(e)[:300])
             return None
         except anthropic.APIConnectionError as e:
             log.warning("visual rating failed", err=str(e)[:200])
