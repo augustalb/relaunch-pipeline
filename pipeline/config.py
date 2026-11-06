@@ -76,6 +76,7 @@ class Settings(BaseSettings):
     LLM_MODEL: str = "claude-haiku-5-5"
     LLM_MAX_COST_PER_RUN_EUR: float = 2.0
     LLM_MAX_TOKENS: int = 8000
+    VISUAL_CHECK: bool = True  # rate the mobile screenshot with the LLM during scoring (needs ANTHROPIC_API_KEY)
 
     # ------------------------------------------------------------------ preview
     CLOUDFLARE_API_TOKEN: str = ""

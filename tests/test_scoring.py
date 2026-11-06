@@ -47,3 +47,45 @@ def test_broken_links_counted():
     r = analyze_html(_res("<html><body>x</body></html>"), None, internal_checks=[200, 404, 500, 200], now=NOW)
     assert r.details["internal_links_broken"] == 2
     assert any("2 von 4" in f.text for f in r.findings)
+
+
+# --- visual rating -----------------------------------------------------------------
+
+from pipeline.services.visual import visual_points  # noqa: E402
+
+SLOW_MODERN = """<!doctype html><html lang="de"><head><meta charset="utf-8"><title>Neu</title><meta name="description" content="x">
+<meta name="viewport" content="width=device-width"><meta name="generator" content="Wix.com Website Builder"><link rel="icon" href="/f.svg"></head>
+<body><h1>Fahrschule Klasse B</h1><img src="a.jpg" alt="a"><footer>&copy; 2026</footer></body></html>"""
+
+
+def test_visual_points_mapping():
+    assert visual_points(None) == 0
+    assert visual_points({"outdated": 9, "mobile_usability": 6, "reasons": []}) == 20
+    assert visual_points({"outdated": 4, "mobile_usability": 2, "reasons": []}) == 20
+    assert visual_points({"outdated": 6, "mobile_usability": 7, "reasons": []}) == 10
+    assert visual_points({"outdated": 5, "mobile_usability": 6, "reasons": []}) == 0
+    assert visual_points({"outdated": 2, "mobile_usability": 9, "reasons": []}) == -15
+
+
+def test_modern_looking_slow_site_is_not_qualified():
+    psi = PageSpeedResult(performance=0.31, lcp_ms=7200, cls=0.05)
+    url = "https://www.wix-fs.de/"
+    without = analyze_html(_res(SLOW_MODERN, url=url, final=url), psi, now=NOW)
+    with_visual = analyze_html(_res(SLOW_MODERN, url=url, final=url), psi, now=NOW, visual={"outdated": 2, "mobile_usability": 9, "reasons": ["modernes Layout"]})
+    assert with_visual.score == without.score - 15
+    assert with_visual.score < 55, with_visual.details
+    assert with_visual.details["visual"]["outdated"] == 2
+
+
+def test_visual_finding_never_reaches_email_text():
+    html = "<html><body><table><tr><td>Fahrschule</td></tr></table></body></html>"
+    r = analyze_html(_res(html), None, now=NOW, visual={"outdated": 9, "mobile_usability": 2, "reasons": ["winzige Schrift", "Tabellenlayout"]})
+    assert r.details["checks"]["visual_outdated"] == 20
+    assert all("winzige Schrift" not in f for f in r.top_findings(10))
+
+
+def test_score_never_negative():
+    html = """<!doctype html><html lang="de"><head><meta charset="utf-8"><title>T</title><meta name="description" content="x">
+    <meta name="viewport" content="width=device-width"><link rel="icon" href="/f.svg"></head><body><h1>Klasse B</h1><footer>&copy; 2026</footer></body></html>"""
+    r = analyze_html(_res(html, url="https://a.de/", final="https://a.de/"), PageSpeedResult(performance=0.99, lcp_ms=900, cls=0.0), now=NOW, visual={"outdated": 1, "mobile_usability": 10, "reasons": []})
+    assert r.score == 0
