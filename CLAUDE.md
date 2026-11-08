@@ -10,6 +10,14 @@ Go-live: **[docs/GO-LIVE.md](docs/GO-LIVE.md)**. Aktueller Stand (Konten, Domain
 - **Für dieses Projekt niemals die nativen Connectors/MCP-Server von claude.ai benutzen** (Supabase, Gmail, Google Drive, Notion, Resend, Stripe, PostHog, Canva, Figma usw.). Sie gehören zu anderen Projekten des Betreibers. Auch keine Lesezugriffe.
 - Zugriff auf Dienste dieses Projekts nur über eigene, projektbezogene Zugänge (Konten auf `august@diaktoros.de`), z. B. API-Schlüssel als GitHub-Secrets bzw. in einer eigenen Cloud-Umgebung für dieses Repository.
 
+## Arbeitsweise (vom Betreiber festgelegt)
+- Betreiber ist kein Entwickler: alles in einfacher Sprache erklären, Schritt für Schritt, Sie-Form.
+- Entwickeln auf dem Arbeitszweig, dann Pull Request anlegen **und selbst mergen** (ausdrücklich erlaubt).
+- Pipeline-Läufe startet Claude selbst über GitHub Actions (`workflow_dispatch`, Inputs siehe `docs/STATUS.md` Abschnitt 5),
+  liest Logs und lädt die Artifacts (Prüfbericht `review/index.html`). Kleine Testläufe (≤ 20 Leads, < 1 €) sind freigegeben;
+  echte Mails nur nach ausdrücklicher Freigabe.
+- Vor jeder Änderung `python -m pytest -q`; neue Fehler aus echten Läufen bekommen einen Regressionstest.
+
 ## Stack
 - Python 3.11+ Paket `pipeline/` (CLI `pipeline`), SQLAlchemy (SQLite lokal, Supabase Postgres in Produktion)
 - Astro 5 + Tailwind 4 in `site/`, Branchen-Templates in `industries/<branche>/site/Template.astro`
